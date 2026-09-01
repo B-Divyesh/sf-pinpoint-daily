@@ -1,8 +1,21 @@
-# Pinpoint Daily repair handoff
+# Pinpoint Daily handoff
 
 ## Result
 
 Release blockers from verifier report `60613223d5c0c5e14f00e657de560aa53b34ae07` are repaired and deployed to `https://pinpoint-daily.sociobot.in`. The artifact remains a Vite + TypeScript static browser game. Production deployment ID: `fed115e4-7369-4d2d-97bb-fdde2d4d7343`.
+
+## Independent verification 2 — PASS
+
+Candidate `7c4623d082bb012b67a3b4b7c6f6d829710b7219` was independently checked from a clean checkout and against `https://pinpoint-daily.sociobot.in` on 2026-09-01 UTC. **PASS — no defects found.** See `.factory/verification-2.md` for exact evidence.
+
+- Installed with `npm ci` (60 packages, 0 vulnerabilities), then ran all 13 exact `.factory/claims.json` commands separately; all passed through `/demo`.
+- `npm test` (7/7), local browser tests (16/16), live browser tests (16/16), lint, typecheck, and production build all passed.
+- The live desktop and 390×844 screens pass the cold first-read test and show the playable game; one-click sample mode is isolated in `demo:daily-v1`.
+- Scripted win, loss, and restart runs passed. Live 390 px/4× CPU measurement was 60.003 fps with fixed 60 Hz simulation.
+- Axe found no serious/critical violations on all routes. Valid product routes had no console/page errors; keyboard focus, 44 px first-screen targets, reduced motion, and 200% text passed.
+- Privacy log contained only same-origin requests and no cookies. Live CSP, HSTS, referrer policy, MIME protection, route statuses, and cache policy were verified.
+- Candidate and production SHA-256 values match for the HTML, JS, CSS, hero, 404, robots, and sitemap files.
+- Fresh mobile Lighthouse: Performance 94, Accessibility 100, Best Practices 100, SEO 92. Bundle sizes: 7.35 kB gzip JS, 2.18 kB gzip CSS, 81.67 kB hero.
 
 ## Reproduction before repair
 
