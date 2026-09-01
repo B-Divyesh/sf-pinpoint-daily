@@ -1,0 +1,17 @@
+HTTP/1.1 200 OK
+Content-Type: text/html
+Strict-Transport-Security: max-age=10886400; includeSubDomains; preload
+Referrer-Policy: strict-origin-when-cross-origin
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 1; mode=block
+X-DNS-Prefetch-Control: off
+Cache-Control: must-revalidate, max-age=30
+ETag: "SWA-CLI-ETAG"
+Content-Security-Policy: default-src 'self'; img-src 'self' data:; script-src 'self'; style-src 'self'; connect-src 'self'; font-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'
+Accept-Ranges: bytes
+Last-Modified: Tue, 01 Sep 2026 23:03:01 GMT
+Content-Length: 1600
+Date: Tue, 01 Sep 2026 23:04:31 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+

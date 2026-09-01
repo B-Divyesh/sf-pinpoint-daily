@@ -1,0 +1,14 @@
+HTTP/2 404 
+content-type: text/html
+date: Tue, 01 Sep 2026 23:14:46 GMT
+cache-control: public, must-revalidate, max-age=30
+etag: "68349165"
+last-modified: Tue, 01 Sep 2026 23:11:31 GMT
+content-length: 519
+strict-transport-security: max-age=10886400; includeSubDomains; preload
+referrer-policy: strict-origin-when-cross-origin
+x-content-type-options: nosniff
+x-xss-protection: 1; mode=block
+x-dns-prefetch-control: off
+content-security-policy: default-src 'self'; img-src 'self' data:; script-src 'self'; style-src 'self'; connect-src 'self'; font-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'
+

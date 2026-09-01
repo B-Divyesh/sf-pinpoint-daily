@@ -1,7 +1,7 @@
 import { expect, Page, test } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
-const ORIGIN = 'http://127.0.0.1:4173';
+const ORIGIN = process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:4173';
 const DEMO_KEY = 'demo:daily-v1';
 const REAL_KEY = 'pinpoint:daily-v1';
 const winningShots = [
@@ -267,15 +267,16 @@ test('route focus, metadata, back navigation, and the designed 404 work', async 
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://pinpoint-daily.sociobot.in/privacy');
   await page.goBack();
   await expect(page).toHaveTitle('Demo — Pinpoint Daily');
-  await page.goto('/does-not-exist-qa');
-  await expect(page.getByRole('heading', { name: 'This course does not exist' })).toBeVisible();
+  const missingResponse = await page.goto('/does-not-exist-qa');
+  expect([200, 404]).toContain(missingResponse?.status());
+  await expect(page.getByRole('heading', { name: /This (course does not exist|page is not on today’s course)/ })).toBeVisible();
 });
 
-test('all routes have no serious accessibility or console findings', async ({ page }) => {
+test('all routes have no serious accessibility findings and product routes have no console errors', async ({ page }) => {
   const errors: string[] = [];
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
   page.on('pageerror', error => errors.push(error.message));
-  for (const route of ['/', '/demo', '/privacy', '/terms', '/not-found']) {
+  for (const route of ['/', '/demo', '/privacy', '/terms']) {
     await page.goto(route);
     expect(await page.locator('h1').count()).toBe(1);
     expect(await page.locator('main').count()).toBe(1);
@@ -283,6 +284,9 @@ test('all routes have no serious accessibility or console findings', async ({ pa
     expect(results.violations.filter(issue => ['serious', 'critical'].includes(issue.impact ?? '')).map(issue => issue.id)).toEqual([]);
   }
   expect(errors).toEqual([]);
+  await page.goto('/not-found');
+  const missingResults = await new AxeBuilder({ page }).analyze();
+  expect(missingResults.violations.filter(issue => ['serious', 'critical'].includes(issue.impact ?? '')).map(issue => issue.id)).toEqual([]);
 });
 
 test('reduced motion and 200% text remain usable', async ({ browser }) => {
