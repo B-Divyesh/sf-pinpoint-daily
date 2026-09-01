@@ -28,10 +28,12 @@ Keyboard play uses arrow keys to set aim and power, Enter to shoot, R to reset t
 
 ## Course generation and difficulty
 
-The daily seed is the UTC date. It deterministically chooses three tabletop courses from seeded layouts. Each has one movable bumper and a light, deterministic wind field. Holes increase from a straight-line warmup, to one banking shot, to a tighter bumper and wind route. Each hole allows five shots; reaching the cup advances, while five misses record the hole and move on. A run is intended to take 2–4 minutes.
+The daily seed is the UTC date. It deterministically chooses three tabletop courses from seeded layouts. Each has one movable bumper and a light, deterministic wind field. Holes increase from a straight-line warmup, to one banking shot, to a tighter bumper and wind route. Each hole allows five shots. All three cups produce a win; any missed hole produces a distinct loss after the third hole. The complete run is designed for a short break.
+
+The 390 px layout drops the editorial hero image so the explanation and playable board fit in the first 844 px. Desktop keeps the generated scene beside the introduction. Run snapshots, best scores, and sound settings persist in separate real and demo namespaces. Sound uses short Web Audio tones only after a player gesture.
 
 ## Assets and provenance
 
-`public/hero-blueprint.webp` is an original generated editorial illustration: a top-down blue drafting board with a tabletop golf course, no text, brands, or logos. It is generated via `/opt/fleet/lib/gen-image.sh` using the factory image deployment on 2026-09-01, then optimised to WebP for the landing preview. The live game board and its icons are procedural Canvas/SVG, authored for this product. Generated imagery is disclosed in the footer.
+`public/hero-blueprint.webp` is an original generated editorial illustration: a top-down blue drafting board with a tabletop golf course, no text, brands, or logos. It was generated via `/opt/fleet/lib/gen-image.sh` using the factory image deployment on 2026-09-01, then optimised to WebP for the landing preview. `public/social-card.webp` is a 1200×630 centre crop of that source. The live game board and its icons are procedural Canvas/SVG, authored for this product. Generated imagery is disclosed in the footer.
 
 Prompt sheet: **Use case: stylized-concept. Asset: compact landing illustration. Subject: a top-down tabletop mini golf course drawn on deep navy blueprint paper, ruled cyan construction grid, chalk-white ball path, warm yellow flag, measured arcs and drafting marks. Materials: blue ink, vellum paper, precise technical illustration. Composition: wide with negative space. Avoid: text, watermark, logo, brands, people, photorealism.**

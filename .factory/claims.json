@@ -1,23 +1,93 @@
 [
   {
+    "id": "demo-isolation",
+    "claim": "Try it with sample data opens a separate demo that never changes ordinary game data",
+    "where": "landing action, demo banner, README",
+    "test": "npm run test:browser -- --grep @claim:demo-isolation",
+    "sandbox": "Fresh browser context; seed ordinary storage, select the landing action, change demo settings, reset, and compare both namespaces."
+  },
+  {
     "id": "shared-daily-course",
     "claim": "Everyone gets the same three-hole course for a UTC day",
-    "where": "landing page and README",
-    "test": "npm test -- -t @claim:shared-daily-course",
-    "sandbox": "Demo entry point; seed course from a fixed UTC date twice and compare all three holes."
+    "where": "landing page, footer, README",
+    "test": "npm run test:browser -- --grep @claim:shared-daily-course",
+    "sandbox": "Two fresh browser contexts enter through /demo with a fixed clock and compare the real daily seed and rendered board."
   },
   {
     "id": "visible-prediction",
     "claim": "A dotted path previews a shot before release",
-    "where": "game board and How it works",
-    "test": "npm test -- -t @claim:visible-prediction",
-    "sandbox": "Demo course; set a sample aim vector and assert that predicted positions are produced before shooting."
+    "where": "game board, How it works, README",
+    "test": "npm run test:browser -- --grep @claim:visible-prediction",
+    "sandbox": "Fresh /demo; measure the rendered cyan path before a shot and verify that pausing removes it."
   },
   {
-    "id": "five-shots",
+    "id": "visible-course-elements",
+    "claim": "Wind, walls, and the moving bumper are visible during play",
+    "where": "How it works, README",
+    "test": "npm run test:browser -- --grep @claim:visible-course-elements",
+    "sandbox": "Fresh /demo; identify the coral bumper, observe its movement during a shot, advance, and assert the wind label."
+  },
+  {
+    "id": "five-shot-limit",
     "claim": "Each hole allows five shots",
-    "where": "landing facts and game board",
-    "test": "npm test -- -t @claim:five-shots",
-    "sandbox": "Demo course; attempt a second shot while the first is rolling, with the controller limited to the five-shot game rule."
+    "where": "landing facts, game board, README",
+    "test": "npm run test:browser -- --grep @claim:five-shot-limit",
+    "sandbox": "Fresh /demo; take and reset exactly five misses, then assert advancement, total count, and the next hole's zero count."
+  },
+  {
+    "id": "run-persistence",
+    "claim": "The current run persists in local browser storage",
+    "where": "privacy page and README",
+    "test": "npm run test:browser -- --grep @claim:run-persistence",
+    "sandbox": "Fresh /demo; reach hole two, take a shot, reload, and verify the same hole and shot count are restored."
+  },
+  {
+    "id": "sound-setting",
+    "claim": "Sound effects work after a gesture and the sound setting persists",
+    "where": "game sound control, README",
+    "test": "npm run test:browser -- --grep @claim:sound-setting",
+    "sandbox": "Fresh /demo with a recorded Web Audio fixture; enable sound, observe a tone, reload, and observe the saved setting and shot tone."
+  },
+  {
+    "id": "local-privacy",
+    "claim": "The game has no accounts, ads, analytics, cookies, or third-party game requests",
+    "where": "privacy section, privacy page, README",
+    "test": "npm run test:browser -- --grep @claim:local-privacy",
+    "sandbox": "Fresh /demo; record every request and cookie through play and navigation, allowing only the product origin."
+  },
+  {
+    "id": "input-methods",
+    "claim": "The game supports drag, keyboard, and labelled on-screen controls, and pause blocks shots",
+    "where": "game instructions, README",
+    "test": "npm run test:browser -- --grep @claim:input-methods",
+    "sandbox": "Fresh /demo; exercise pause, keyboard aim/fire, zero-length pointer input, and on-screen controls."
+  },
+  {
+    "id": "distinct-outcomes",
+    "claim": "Sinking all three cups wins; missing a hole produces a distinct loss",
+    "where": "How it works, end screens, README",
+    "test": "npm run test:browser -- --grep @claim:distinct-outcomes",
+    "sandbox": "Two fresh /demo contexts run deterministic three-shot win and fifteen-miss scripts to different end screens."
+  },
+  {
+    "id": "best-score",
+    "claim": "A winning best score persists in local browser storage",
+    "where": "game results, privacy page, README",
+    "test": "npm run test:browser -- --grep @claim:best-score",
+    "sandbox": "Fresh /demo; complete the deterministic three-shot win, inspect the saved best, reload, and verify the winning result remains."
+  },
+  {
+    "id": "frame-rate-target",
+    "claim": "The game uses fixed 60 Hz simulation and targets 60 rendered frames per second on a mid-range phone",
+    "where": "README",
+    "test": "npm run test:browser -- --grep @claim:frame-rate-target",
+    "sandbox": "Fresh /demo at 390x844 under 4x CPU throttling; assert the 60 Hz simulation marker and measure 120 rendered frames at 55-65 fps."
+  },
+  {
+    "id": "free-play",
+    "claim": "The complete game is free to play without an account or payment step",
+    "where": "landing facts, terms, README",
+    "test": "npm run test:browser -- --grep @claim:free-play",
+    "sandbox": "Fresh /demo; assert the playable Shoot action and absence of sign-in and payment controls."
   }
 ]

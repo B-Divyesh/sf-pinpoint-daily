@@ -4,11 +4,16 @@
     { "route": "/*.webp", "headers": { "Cache-Control": "public, max-age=31536000, immutable" } },
     { "route": "/*.svg", "headers": { "Cache-Control": "public, max-age=31536000, immutable" } }
   ],
-  "navigationFallback": { "rewrite": "/index.html", "exclude": ["/assets/*", "/*.webp", "/*.svg", "/robots.txt", "/sitemap.xml"] },
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/assets/*", "/*.webp", "/*.svg", "/robots.txt", "/sitemap.xml"]
+  },
   "globalHeaders": {
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "strict-origin-when-cross-origin",
     "Content-Security-Policy": "default-src 'self'; img-src 'self' data:; script-src 'self'; style-src 'self'; connect-src 'self'; font-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
   },
-  "responseOverrides": { "404": { "rewrite": "/404.html" } }
+  "responseOverrides": {
+    "404": { "rewrite": "/404.html" }
+  }
 }

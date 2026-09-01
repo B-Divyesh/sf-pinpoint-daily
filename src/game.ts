@@ -1,10 +1,11 @@
 export type Vec = { x: number; y: number };
 export type Wall = { x: number; y: number; w: number; h: number };
 export type Hole = { start: Vec; cup: Vec; walls: Wall[]; bumper: { x: number; y: number; axis: 'x' | 'y'; range: number; phase: number }; wind: Vec; par: number };
+export type SimulationSnapshot = { ball: Vec; velocity: Vec; elapsed: number; inCup: boolean };
 
 export const BOARD = { w: 800, h: 480, ball: 11, cup: 17 };
 export const MAX_SHOTS = 5;
-const DT = 1 / 60;
+export const FIXED_STEP = 1 / 60;
 
 function random(seed: number) {
   let value = seed >>> 0;
@@ -29,10 +30,19 @@ export function makeCourse(seed = dailySeed()): Hole[] {
 
 export class GameSimulation {
   ball: Vec;
+  previousBall: Vec;
   velocity: Vec = { x: 0, y: 0 };
   elapsed = 0;
   inCup = false;
-  constructor(public hole: Hole) { this.ball = { ...hole.start }; }
+  constructor(public hole: Hole, snapshot?: SimulationSnapshot) {
+    this.ball = snapshot ? { ...snapshot.ball } : { ...hole.start };
+    this.previousBall = { ...this.ball };
+    if (snapshot) {
+      this.velocity = { ...snapshot.velocity };
+      this.elapsed = snapshot.elapsed;
+      this.inCup = snapshot.inCup;
+    }
+  }
   get moving() { return Math.hypot(this.velocity.x, this.velocity.y) > .08; }
   bumperAt(time = this.elapsed): Vec {
     const shift = Math.sin(time * 1.3 + this.hole.bumper.phase) * this.hole.bumper.range;
@@ -46,11 +56,15 @@ export class GameSimulation {
     this.velocity = { x: aim.x / length * scale, y: aim.y / length * scale };
     return true;
   }
-  reset() { this.ball = { ...this.hole.start }; this.velocity = { x: 0, y: 0 }; this.inCup = false; }
-  step(dt = DT) {
+  snapshot(): SimulationSnapshot {
+    return { ball: { ...this.ball }, velocity: { ...this.velocity }, elapsed: this.elapsed, inCup: this.inCup };
+  }
+  reset() { this.ball = { ...this.hole.start }; this.previousBall = { ...this.ball }; this.velocity = { x: 0, y: 0 }; this.inCup = false; }
+  step(dt = FIXED_STEP) {
     if (this.inCup) return;
-    this.elapsed += dt;
+    this.previousBall = { ...this.ball };
     if (!this.moving) return;
+    this.elapsed += dt;
     this.velocity.x += this.hole.wind.x * dt * 60;
     this.velocity.y += this.hole.wind.y * dt * 60;
     this.ball.x += this.velocity.x * dt * 60;
