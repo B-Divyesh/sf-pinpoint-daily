@@ -1,0 +1,13 @@
+HTTP/2 200 
+content-type: text/css
+date: Tue, 01 Sep 2026 22:14:00 GMT
+cache-control: public, must-revalidate, max-age=30
+etag: "39716162"
+last-modified: Tue, 01 Sep 2026 21:54:04 GMT
+content-length: 5870
+strict-transport-security: max-age=10886400; includeSubDomains; preload
+referrer-policy: strict-origin-when-cross-origin
+x-content-type-options: nosniff
+x-xss-protection: 1; mode=block
+x-dns-prefetch-control: off
+
