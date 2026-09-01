@@ -1,0 +1,23 @@
+[
+  {
+    "id": "shared-daily-course",
+    "claim": "Everyone gets the same three-hole course for a UTC day",
+    "where": "landing page and README",
+    "test": "npm test -- -t @claim:shared-daily-course",
+    "sandbox": "Demo entry point; seed course from a fixed UTC date twice and compare all three holes."
+  },
+  {
+    "id": "visible-prediction",
+    "claim": "A dotted path previews a shot before release",
+    "where": "game board and How it works",
+    "test": "npm test -- -t @claim:visible-prediction",
+    "sandbox": "Demo course; set a sample aim vector and assert that predicted positions are produced before shooting."
+  },
+  {
+    "id": "five-shots",
+    "claim": "Each hole allows five shots",
+    "where": "landing facts and game board",
+    "test": "npm test -- -t @claim:five-shots",
+    "sandbox": "Demo course; attempt a second shot while the first is rolling, with the controller limited to the five-shot game rule."
+  }
+]
