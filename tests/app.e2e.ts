@@ -284,3 +284,17 @@ test('all routes have no serious accessibility or console findings', async ({ pa
   }
   expect(errors).toEqual([]);
 });
+
+test('reduced motion and 200% text remain usable', async ({ browser }) => {
+  const context = await browser.newContext({ baseURL: ORIGIN, reducedMotion: 'reduce', viewport: { width: 390, height: 844 } });
+  const page = await context.newPage();
+  await page.goto('/demo');
+  expect(await page.evaluate(() => ({
+    reduced: matchMedia('(prefers-reduced-motion: reduce)').matches,
+    scroll: getComputedStyle(document.documentElement).scrollBehavior,
+  }))).toEqual({ reduced: true, scroll: 'auto' });
+  await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
+  await expect(page.getByRole('button', { name: 'Shoot' })).toBeVisible();
+  await context.close();
+});

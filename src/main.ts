@@ -113,7 +113,7 @@ function home() {
     ? 'SAMPLE COURSE · 1 SEP 2026'
     : `TODAY’S SHARED COURSE · ${new Intl.DateTimeFormat('en-GB', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' }).format(new Date()).toUpperCase()}`;
   const banner = demo
-    ? `<aside class="demo-banner" role="status"><strong>Demo — sample data, saved only here</strong><button id="reset-demo">Reset demo</button><button id="start-real">Start for real</button></aside>`
+    ? `<div class="demo-banner" role="status"><strong>Demo — sample data, saved only here</strong><button id="reset-demo">Reset demo</button><button id="start-real">Start for real</button></div>`
     : '';
   shell(`${banner}<section class="intro"><div><p class="eyebrow">${dateText}</p><h1>Play today’s three-hole course</h1>
     <p class="lede">For players who want a short physics puzzle with the same fair course for everyone.</p>
