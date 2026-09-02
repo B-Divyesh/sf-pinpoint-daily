@@ -56,11 +56,21 @@ function updateMetadata(path: string) {
   const routeName = path === '/demo' ? 'Demo' : path === '/privacy' ? 'Privacy' : path === '/terms' ? 'Terms' : path === '/' ? '' : 'Page not found';
   const title = routeName ? `${routeName} — Pinpoint Daily` : 'Pinpoint Daily — Play a daily three-hole course';
   const canonicalPath = path === '/' ? '/' : path;
+  const descriptions: Record<string, string> = {
+    '/': 'Play one shared three-hole tabletop golf course each day.',
+    '/demo': 'Play a three-hole Pinpoint Daily sample course in separate demo storage.',
+    '/privacy': 'Read what Pinpoint Daily stores in your browser and how to remove it.',
+    '/terms': 'Read the rules and availability terms for playing Pinpoint Daily.',
+  };
+  const description = descriptions[path] ?? 'This address does not match a Pinpoint Daily page.';
   document.title = title;
   document.querySelector<HTMLLinkElement>('link[rel="canonical"]')!.href = `https://pinpoint-daily.sociobot.in${canonicalPath}`;
+  document.querySelector<HTMLMetaElement>('meta[name="description"]')!.content = description;
   document.querySelector<HTMLMetaElement>('meta[property="og:title"]')!.content = title;
+  document.querySelector<HTMLMetaElement>('meta[property="og:description"]')!.content = description;
   document.querySelector<HTMLMetaElement>('meta[property="og:url"]')!.content = `https://pinpoint-daily.sociobot.in${canonicalPath}`;
   document.querySelector<HTMLMetaElement>('meta[name="twitter:title"]')!.content = title;
+  document.querySelector<HTMLMetaElement>('meta[name="twitter:description"]')!.content = description;
 }
 
 function shell(content: string) {
@@ -70,7 +80,7 @@ function shell(content: string) {
       <nav aria-label="Main navigation">${link('/demo', 'Demo')}${link('/#how', 'How it works')}${link('/privacy', 'Privacy')}</nav>
     </header>
     <main id="main" tabindex="-1">${content}</main>
-    <footer><span>Play one shared tabletop course each day.</span>${link('/privacy', 'Privacy')}${link('/terms', 'Terms')}<span>Built by Param Factory · build 1.1.0</span><span>Course art uses original generated imagery.</span></footer>
+    <footer><span>Play one shared tabletop course each day.</span>${link('/privacy', 'Privacy')}${link('/terms', 'Terms')}<span>Built by Param Factory · build 1.2.0</span></footer>
     <div class="sr-only" aria-live="polite" id="announcer"></div>`;
   wireLinks();
 }
@@ -91,7 +101,7 @@ function policy(type: 'privacy' | 'terms') {
   const privacy = type === 'privacy';
   shell(`<section class="legal"><p class="eyebrow">${privacy ? 'PRIVACY' : 'TERMS'}</p>
     <h1>${privacy ? 'Your scores stay on this device' : 'Rules for playing Pinpoint Daily'}</h1>
-    <p>${privacy ? 'Pinpoint Daily stores your daily best score, current run, and settings in this browser only.' : 'Pinpoint Daily is a free game for general audiences.'}</p>
+    <p>${privacy ? 'Pinpoint Daily stores your daily best score, current run, and settings in this browser only.' : 'Pinpoint Daily is free to play.'}</p>
     <h2>${privacy ? 'What is stored' : 'Use of the game'}</h2>
     <p>${privacy ? 'Your current run, completed dates, sound setting, and best score use local browser storage. No account is required. Game data is not sent to a server.' : 'Play fairly, do not interfere with the site, and use the game at your own discretion.'}</p>
     <h2>${privacy ? 'How to remove it' : 'Availability'}</h2>
@@ -115,16 +125,26 @@ function home() {
   const banner = demo
     ? `<div class="demo-banner" role="status"><strong>Demo — sample data, saved only here</strong><button id="reset-demo">Reset demo</button><button id="start-real">Start for real</button></div>`
     : '';
+  const primaryAction = demo
+    ? `<button class="button primary" id="play-demo">Play the sample course</button><span>Moves focus to the demo course.</span>`
+    : `<a class="button primary" href="/demo" data-route>Try it with sample data</a><span>Opens a demo course in separate storage.</span>`;
   shell(`${banner}<section class="intro"><div><p class="eyebrow">${dateText}</p><h1>Play today’s three-hole course</h1>
-    <p class="lede">For players who want a short physics puzzle with the same fair course for everyone.</p>
-    <div class="actions"><a class="button primary" href="/demo" data-route>Try it with sample data</a><span>Opens a practice course in separate demo storage.</span></div>
+    <p class="lede">For players who want a short physics puzzle with one shared course each day.</p>
+    <div class="actions">${primaryAction}</div>
     <ul class="facts"><li>Free to play</li><li>Five shots per hole</li><li>Scores stay on this device</li></ul></div>
     <img src="/hero-blueprint.webp" width="1200" height="800" fetchpriority="high" decoding="async" alt="A tabletop golf course drawn on a navy blueprint sheet." /></section>
     <section class="play-section" aria-labelledby="course-heading"><div class="section-title"><div><p class="eyebrow">LIVE COURSE</p><h2 id="course-heading">Aim, check the dotted path, then shoot</h2></div><p>Drag away from the ball to set aim and power.</p></div><div id="game-root"></div></section>
     <section class="how" id="how"><p class="eyebrow">HOW IT WORKS</p><h2>Play the daily course in three steps</h2><ol><li><b>Read the board.</b> Wind, walls, and the moving bumper are visible.</li><li><b>Drag a shot.</b> The dotted path previews bounces before release.</li><li><b>Finish three holes.</b> Sink every cup to win. Five missed shots lose a hole.</li></ol></section>
-    <section class="privacy-note"><h2>What this game does not do</h2><p>It has no accounts, ads, analytics, or public leaderboard. Game data stays in your browser.</p></section>`);
+    <section class="privacy-note"><h2>What this game does not do</h2><p>It has no accounts, ads, or analytics. Game data stays in your browser.</p></section>`);
   mountGame(document.querySelector('#game-root')!, seed, demo);
   if (demo) {
+    document.querySelector('#play-demo')?.addEventListener('click', () => {
+      const heading = document.querySelector<HTMLElement>('#course-heading');
+      if (!heading) return;
+      heading.tabIndex = -1;
+      heading.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+      heading.focus({ preventScroll: true });
+    });
     document.querySelector('#reset-demo')?.addEventListener('click', () => {
       stopGame();
       stopGame = () => {};
@@ -177,7 +197,7 @@ function mountGame(root: Element, seed: number, isDemo: boolean) {
   const ctx = canvas.getContext('2d')!;
   ctx.scale(ratio, ratio);
   root.innerHTML = `<div class="game-wrap"><div class="score-strip"><span id="hole-label">Hole 1 of 3</span><span id="shot-label">Shots: 0 / ${MAX_SHOTS}</span><span id="win-label">Cups: 0 / 3</span><span id="wind-label"></span><button id="pause" aria-pressed="false">Pause</button></div></div>
-    <div class="game-controls"><button id="left" aria-label="Aim left">← Aim</button><button id="right" aria-label="Aim right">Aim →</button><button id="less">Less power</button><button id="more">More power</button><button class="shoot" id="shoot">Shoot</button><button id="reset-hole">Reset hole</button><button id="sound" aria-pressed="false">Sound off</button></div>
+    <div class="game-controls"><button id="left" aria-label="Aim left">← Aim</button><button id="right" aria-label="Aim right">Aim →</button><button id="less">Decrease power</button><button id="more">Increase power</button><button class="shoot" id="shoot">Shoot</button><button id="reset-hole">Reset hole</button><button id="sound" aria-pressed="false">Turn sound on</button></div>
     <div class="game-status" id="game-status" aria-live="polite">Drag from the ball, or use arrow keys and Enter.</div><div class="results" id="results" tabindex="-1" hidden></div><button class="clear-score" id="clear-score">Clear local score</button>`;
   root.querySelector('.game-wrap')!.append(canvas);
 
@@ -219,7 +239,7 @@ function mountGame(root: Element, seed: number, isDemo: boolean) {
     holeLabel.textContent = `Hole ${holeIndex + 1} of 3`;
     shotLabel.textContent = `Shots: ${shots} / ${MAX_SHOTS}`;
     winLabel.textContent = `Cups: ${holesWon} / 3`;
-    soundButton.textContent = stored.sound ? 'Sound on' : 'Sound off';
+    soundButton.textContent = stored.sound ? 'Turn sound off' : 'Turn sound on';
     soundButton.setAttribute('aria-pressed', String(stored.sound));
   };
   const tone = async (frequency: number, duration = .08) => {
@@ -322,11 +342,28 @@ function mountGame(root: Element, seed: number, isDemo: boolean) {
   function renderResult() {
     if (!outcome) return;
     result.hidden = false;
+    const shareText = `Pinpoint Daily ${String(seed).replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3')} — ${holesWon}/3 cups in ${total} shots`;
     if (outcome === 'won') {
-      result.innerHTML = `<h3>Course complete — you won</h3><p>You sank all three cups in <strong>${total} shots</strong>. ${stored.best === total ? 'That is your local best.' : `Local best: ${stored.best} shots.`}</p><button id="play-again">Play again</button>`;
+      result.innerHTML = `<h3>Course complete — you won</h3><p>You sank all three cups in <strong>${total} shots</strong>. ${stored.best === total ? 'That is your local best.' : `Local best: ${stored.best} shots.`}</p><div class="result-actions"><button id="copy-result">Copy today’s result</button><button id="play-again">Play again</button></div><label class="share-fallback" hidden>Copy this result<textarea readonly rows="2"></textarea></label><p class="share-status" aria-live="polite"></p>`;
     } else {
-      result.innerHTML = `<h3>Course over — try again</h3><p>You sank <strong>${holesWon} of 3 cups</strong>. Sink every cup to win.</p><button id="play-again">Play again</button>`;
+      result.innerHTML = `<h3>Course over — try again</h3><p>You sank <strong>${holesWon} of 3 cups</strong>. Sink every cup to win.</p><div class="result-actions"><button id="copy-result">Copy today’s result</button><button id="play-again">Play again</button></div><label class="share-fallback" hidden>Copy this result<textarea readonly rows="2"></textarea></label><p class="share-status" aria-live="polite"></p>`;
     }
+    result.querySelector('#copy-result')?.addEventListener('click', async () => {
+      const message = result.querySelector<HTMLElement>('.share-status')!;
+      const fallback = result.querySelector<HTMLElement>('.share-fallback')!;
+      const field = fallback.querySelector<HTMLTextAreaElement>('textarea')!;
+      try {
+        if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable');
+        await navigator.clipboard.writeText(shareText);
+        message.textContent = 'Today’s result copied.';
+      } catch {
+        field.value = shareText;
+        fallback.hidden = false;
+        field.focus();
+        field.select();
+        message.textContent = 'Copy the selected result above.';
+      }
+    });
     result.querySelector('#play-again')?.addEventListener('click', startNewRun);
   }
 

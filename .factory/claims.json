@@ -77,6 +77,20 @@
     "sandbox": "Fresh /demo; complete the deterministic three-shot win, inspect the saved best, reload, and verify the winning result remains."
   },
   {
+    "id": "completed-date-persistence",
+    "claim": "A completed course date persists in local browser storage",
+    "where": "privacy page",
+    "test": "npm run test:browser -- --grep @claim:completed-date-persistence",
+    "sandbox": "Fresh /demo; complete the deterministic win, assert the sample date is stored, reload, and assert it remains stored."
+  },
+  {
+    "id": "result-sharing",
+    "claim": "Completed win and loss screens copy the date, cups, and shot total without course geometry",
+    "where": "game results and README",
+    "test": "npm run test:browser -- --grep @claim:result-sharing",
+    "sandbox": "Fresh /demo win and loss contexts with a recorded Clipboard fixture; assert exact copied text for each outcome."
+  },
+  {
     "id": "frame-rate-target",
     "claim": "The game uses fixed 60 Hz simulation and targets 60 rendered frames per second on a mid-range phone",
     "where": "README",
@@ -89,5 +103,12 @@
     "where": "landing facts, terms, README",
     "test": "npm run test:browser -- --grep @claim:free-play",
     "sandbox": "Fresh /demo; assert the playable Shoot action and absence of sign-in and payment controls."
+  },
+  {
+    "id": "static-deploy",
+    "claim": "The production build creates static files with route rewrites and security headers",
+    "where": "README deployment instructions",
+    "test": "npm run test:browser -- --grep @claim:static-deploy",
+    "sandbox": "Build and serve dist through the Static Web Apps emulator; open /demo, /privacy, /terms, and an unknown route; assert statuses, metadata, CSP, referrer, MIME, focus, and the 404 shell."
   }
 ]

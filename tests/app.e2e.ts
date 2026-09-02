@@ -33,7 +33,7 @@ async function takeWinningShot(page: Page, index: number) {
   await page.mouse.up();
 }
 
-test('@claim:demo-isolation the first-screen action enters isolated demo storage', async ({ page }) => {
+test('@claim:demo-isolation the landing action and query alias use isolated demo storage', async ({ page, browser }) => {
   await page.goto('/');
   const originalReal = JSON.stringify({ best: 9, completed: ['2026-08-31'], sound: false });
   await page.evaluate(({ key, value }) => localStorage.setItem(key, value), { key: REAL_KEY, value: originalReal });
@@ -41,8 +41,20 @@ test('@claim:demo-isolation the first-screen action enters isolated demo storage
   await expect(page).toHaveURL('/demo');
   await expect(page).toHaveTitle('Demo — Pinpoint Daily');
   await expect(page.getByText('Demo — sample data, saved only here')).toBeVisible();
-  await page.getByRole('button', { name: 'Sound off' }).click();
+  await page.getByRole('button', { name: 'Turn sound on' }).click();
   expect(await page.evaluate(key => localStorage.getItem(key), REAL_KEY)).toBe(originalReal);
+
+  const aliasContext = await browser.newContext({ baseURL: ORIGIN });
+  const aliasPage = await aliasContext.newPage();
+  await aliasPage.goto('/');
+  await aliasPage.evaluate(({ key, value }) => localStorage.setItem(key, value), { key: REAL_KEY, value: originalReal });
+  await aliasPage.goto('/?demo=1');
+  await expect(aliasPage).toHaveTitle('Demo — Pinpoint Daily');
+  await expect(aliasPage.getByText('Demo — sample data, saved only here')).toBeVisible();
+  await aliasPage.getByRole('button', { name: 'Turn sound on' }).click();
+  expect(await aliasPage.evaluate(key => localStorage.getItem(key), DEMO_KEY)).not.toBeNull();
+  expect(await aliasPage.evaluate(key => localStorage.getItem(key), REAL_KEY)).toBe(originalReal);
+  await aliasContext.close();
   expect(await page.evaluate(key => localStorage.getItem(key), DEMO_KEY)).not.toBeNull();
   await page.getByRole('button', { name: 'Reset demo' }).click();
   expect(await page.evaluate(key => localStorage.getItem(key), DEMO_KEY)).toBeNull();
@@ -145,11 +157,11 @@ test('@claim:sound-setting sound plays after a gesture and the setting survives 
     Object.defineProperty(window, 'AudioContext', { configurable: true, value: FakeAudioContext });
   });
   await page.goto('/demo');
-  await page.getByRole('button', { name: 'Sound off' }).click();
-  await expect(page.getByRole('button', { name: 'Sound on' })).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('button', { name: 'Turn sound on' }).click();
+  await expect(page.getByRole('button', { name: 'Turn sound off' })).toHaveAttribute('aria-pressed', 'true');
   expect(await page.evaluate(() => (window as any).__toneStarts)).toBeGreaterThan(0);
   await page.reload();
-  await expect(page.getByRole('button', { name: 'Sound on' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('button', { name: 'Turn sound off' })).toHaveAttribute('aria-pressed', 'true');
   await page.locator('#shoot').click();
   await expect.poll(() => page.evaluate(() => (window as any).__toneStarts)).toBeGreaterThan(0);
 });
@@ -158,7 +170,7 @@ test('@claim:local-privacy a complete local interaction sends no third-party req
   const requests: string[] = [];
   page.on('request', request => requests.push(request.url()));
   await page.goto('/demo');
-  await page.getByRole('button', { name: 'Sound off' }).click();
+  await page.getByRole('button', { name: 'Turn sound on' }).click();
   await page.locator('#shoot').click();
   await page.locator('#reset-hole').click();
   await page.getByRole('link', { name: 'Privacy' }).first().click();
@@ -183,13 +195,17 @@ test('@claim:input-methods keyboard, pointer, pause, and labelled controls work'
   await page.keyboard.press('Enter');
   await expect(page.getByText('Shots: 1 / 5', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Reset hole' }).click();
-  await page.getByRole('button', { name: 'Less power' }).click();
+  await page.getByRole('button', { name: 'Decrease power' }).click();
   await page.getByRole('button', { name: 'Shoot' }).click();
   await expect(page.getByText('Shots: 2 / 5', { exact: true })).toBeVisible();
 });
 
-test('@claim:distinct-outcomes @claim:best-score scripted runs produce different win and loss screens', async ({ page, browser }) => {
+test('@claim:distinct-outcomes @claim:best-score @claim:completed-date-persistence @claim:result-sharing scripted runs persist and share distinct results', async ({ page, browser }) => {
   test.setTimeout(60_000);
+  await page.addInitScript(() => {
+    (window as any).__copiedResult = '';
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText(value: string) { (window as any).__copiedResult = value; return Promise.resolve(); } } });
+  });
   await page.goto('/demo');
   for (let hole = 0; hole < winningShots.length; hole++) {
     await takeWinningShot(page, hole);
@@ -197,20 +213,61 @@ test('@claim:distinct-outcomes @claim:best-score scripted runs produce different
   }
   await expect(page.getByRole('heading', { name: 'Course complete — you won' })).toBeVisible({ timeout: 15_000 });
   await expect(page.getByText('You sank all three cups in 3 shots.', { exact: false })).toBeVisible();
-  expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)!).best, DEMO_KEY)).toBe(3);
+  const savedWin = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), DEMO_KEY);
+  expect(savedWin.best).toBe(3);
+  expect(savedWin.completed).toContain('20260901');
+  await page.getByRole('button', { name: 'Copy today’s result' }).click();
+  expect(await page.evaluate(() => (window as any).__copiedResult)).toBe('Pinpoint Daily 2026-09-01 — 3/3 cups in 3 shots');
+  await expect(page.getByText('Today’s result copied.')).toBeVisible();
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Course complete — you won' })).toBeVisible();
   await expect(page.getByText('local best', { exact: false })).toBeVisible();
+  expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)!).completed, DEMO_KEY)).toContain('20260901');
 
   const lossContext = await browser.newContext({ baseURL: ORIGIN });
   const lossPage = await lossContext.newPage();
+  await lossPage.addInitScript(() => {
+    (window as any).__copiedResult = '';
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText(value: string) { (window as any).__copiedResult = value; return Promise.resolve(); } } });
+  });
   await lossPage.goto('/demo');
   await loseHole(lossPage, 2);
   await loseHole(lossPage, 3);
   await loseHole(lossPage);
   await expect(lossPage.getByRole('heading', { name: 'Course over — try again' })).toBeVisible();
   await expect(lossPage.getByText('You sank 0 of 3 cups.', { exact: false })).toBeVisible();
+  await lossPage.getByRole('button', { name: 'Copy today’s result' }).click();
+  expect(await lossPage.evaluate(() => (window as any).__copiedResult)).toBe('Pinpoint Daily 2026-09-01 — 0/3 cups in 15 shots');
   await lossContext.close();
+});
+
+test('result sharing shows selectable text when clipboard access fails', async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText() { return Promise.reject(new Error('blocked')); } } });
+  });
+  await page.goto('/demo');
+  await page.evaluate(key => localStorage.setItem(key, JSON.stringify({
+    best: null,
+    completed: [],
+    sound: false,
+    run: {
+      seed: 20260901,
+      holeIndex: 2,
+      shots: 5,
+      total: 15,
+      holesWon: 0,
+      angle: -.4,
+      power: 95,
+      simulation: { ball: { x: 130, y: 350 }, velocity: { x: 0, y: 0 }, elapsed: 0, inCup: false },
+      outcome: 'lost',
+    },
+  })), DEMO_KEY);
+  await page.reload();
+  await page.getByRole('button', { name: 'Copy today’s result' }).click();
+  const fallback = page.getByLabel('Copy this result');
+  await expect(fallback).toBeVisible();
+  await expect(fallback).toHaveValue('Pinpoint Daily 2026-09-01 — 0/3 cups in 15 shots');
+  await expect(page.getByText('Copy the selected result above.')).toBeVisible();
 });
 
 test('@claim:frame-rate-target the game targets 60 fps at 390px under CPU throttle', async ({ page, context }) => {
@@ -256,20 +313,35 @@ test('390x844 first screen contains the explanation, action, and playable board'
     .filter(rect => rect.width > 0 && rect.height > 0 && rect.top < innerHeight && (rect.width < 44 || rect.height < 44))
     .length);
   expect(undersized).toBe(0);
+  await page.getByRole('button', { name: 'Play the sample course' }).click();
+  await expect(page.getByRole('heading', { name: 'Aim, check the dotted path, then shoot' })).toBeFocused();
 });
 
-test('route focus, metadata, back navigation, and the designed 404 work', async ({ page }) => {
-  await page.goto('/demo');
+test('@claim:static-deploy route responses, metadata, focus, and the designed 404 work', async ({ page }) => {
+  const demoResponse = await page.goto('/demo');
+  expect(demoResponse?.status()).toBe(200);
+  expect(demoResponse?.headers()['content-security-policy']).toContain("frame-ancestors 'none'");
+  expect(demoResponse?.headers()['referrer-policy']).toBe('strict-origin-when-cross-origin');
+  expect(demoResponse?.headers()['x-content-type-options']).toBe('nosniff');
   await page.getByRole('link', { name: 'Privacy' }).first().click();
   await expect(page.getByRole('heading', { level: 1 })).toBeFocused();
   await expect(page.locator('#announcer')).toContainText('page loaded');
   await expect(page).toHaveTitle('Privacy — Pinpoint Daily');
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://pinpoint-daily.sociobot.in/privacy');
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', 'Read what Pinpoint Daily stores in your browser and how to remove it.');
   await page.goBack();
   await expect(page).toHaveTitle('Demo — Pinpoint Daily');
+  const privacyResponse = await page.goto('/privacy');
+  const termsResponse = await page.goto('/terms');
+  expect(privacyResponse?.status()).toBe(200);
+  expect(termsResponse?.status()).toBe(200);
   const missingResponse = await page.goto('/does-not-exist-qa');
-  expect([200, 404]).toContain(missingResponse?.status());
-  await expect(page.getByRole('heading', { name: /This (course does not exist|page is not on today’s course)/ })).toBeVisible();
+  expect(missingResponse?.status()).toBe(404);
+  await expect(page).toHaveTitle('Page not found — Pinpoint Daily');
+  await expect(page.getByRole('heading', { name: 'This page is not on today’s course' })).toBeVisible();
+  await expect(page.getByRole('banner')).toBeVisible();
+  await expect(page.getByRole('contentinfo')).toBeVisible();
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', 'This address does not match a Pinpoint Daily page.');
 });
 
 test('all routes have no serious accessibility findings and product routes have no console errors', async ({ page }) => {

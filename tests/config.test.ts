@@ -16,3 +16,14 @@ describe('static deployment policy', () => {
     expect(config.responseOverrides['404'].rewrite).toBe('/404.html');
   });
 });
+
+describe('claims registry', () => {
+  it('maps every registered claim to exactly one test tag', () => {
+    const claims = JSON.parse(readFileSync('.factory/claims.json', 'utf8')) as { id: string }[];
+    const tests = ['tests/app.e2e.ts', 'tests/config.test.ts', 'tests/game.test.ts'].map(file => readFileSync(file, 'utf8')).join('\n');
+    const registered = new Set(claims.map(claim => claim.id));
+    const tagged = [...tests.matchAll(/@claim:([a-z0-9-]+)/g)].map(match => match[1]);
+    expect(new Set(tagged)).toEqual(registered);
+    for (const id of registered) expect(tagged.filter(tag => tag === id)).toHaveLength(1);
+  });
+});
