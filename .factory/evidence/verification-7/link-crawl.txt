@@ -1,0 +1,18 @@
+[
+  {
+    "url": "https://pinpoint-daily.sociobot.in/",
+    "status": 200
+  },
+  {
+    "url": "https://pinpoint-daily.sociobot.in/demo",
+    "status": 200
+  },
+  {
+    "url": "https://pinpoint-daily.sociobot.in/privacy",
+    "status": 200
+  },
+  {
+    "url": "https://pinpoint-daily.sociobot.in/terms",
+    "status": 200
+  }
+]

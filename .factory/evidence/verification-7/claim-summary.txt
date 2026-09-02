@@ -1,0 +1,38 @@
+RUN demo-isolation: npm run test:browser -- --grep @claim:demo-isolation
+EXIT 0 demo-isolation
+RUN demo-focus: npm run test:browser -- --grep @claim:demo-focus
+EXIT 0 demo-focus
+RUN shared-daily-course: npm run test:browser -- --grep @claim:shared-daily-course
+EXIT 0 shared-daily-course
+RUN visible-prediction: npm run test:browser -- --grep @claim:visible-prediction
+EXIT 0 visible-prediction
+RUN visible-course-elements: npm run test:browser -- --grep @claim:visible-course-elements
+EXIT 0 visible-course-elements
+RUN five-shot-limit: npm run test:browser -- --grep @claim:five-shot-limit
+EXIT 0 five-shot-limit
+RUN run-persistence: npm run test:browser -- --grep @claim:run-persistence
+EXIT 0 run-persistence
+RUN sound-setting: npm run test:browser -- --grep @claim:sound-setting
+EXIT 0 sound-setting
+RUN local-privacy: npm run test:browser -- --grep @claim:local-privacy
+EXIT 0 local-privacy
+RUN input-methods: npm run test:browser -- --grep @claim:input-methods
+EXIT 0 input-methods
+RUN distinct-outcomes: npm run test:browser -- --grep @claim:distinct-outcomes
+EXIT 0 distinct-outcomes
+RUN best-score: npm run test:browser -- --grep @claim:best-score
+EXIT 0 best-score
+RUN restart-reset: npm run test:browser -- --grep @claim:restart-reset
+EXIT 0 restart-reset
+RUN completed-date-persistence: npm run test:browser -- --grep @claim:completed-date-persistence
+EXIT 0 completed-date-persistence
+RUN clear-local-score-history: npm run test:browser -- --grep @claim:clear-local-score-history
+EXIT 0 clear-local-score-history
+RUN result-sharing: npm run test:browser -- --grep @claim:result-sharing
+EXIT 0 result-sharing
+RUN frame-rate-target: npm run test:browser -- --grep @claim:frame-rate-target
+EXIT 0 frame-rate-target
+RUN free-play: npm run test:browser -- --grep @claim:free-play
+EXIT 0 free-play
+RUN static-deploy: npm run test:browser -- --grep @claim:static-deploy
+EXIT 0 static-deploy

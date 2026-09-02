@@ -1,0 +1,247 @@
+{
+  "focusSequence": [
+    {
+      "name": "Skip to main content",
+      "tag": "A",
+      "outlineWidth": "3px",
+      "outlineStyle": "solid"
+    },
+    {
+      "name": "Pinpoint Daily home",
+      "tag": "A",
+      "outlineWidth": "3px",
+      "outlineStyle": "solid"
+    },
+    {
+      "name": "Demo",
+      "tag": "A",
+      "outlineWidth": "3px",
+      "outlineStyle": "solid"
+    },
+    {
+      "name": "How it works",
+      "tag": "A",
+      "outlineWidth": "3px",
+      "outlineStyle": "solid"
+    },
+    {
+      "name": "Privacy",
+      "tag": "A",
+      "outlineWidth": "3px",
+      "outlineStyle": "solid"
+    },
+    {
+      "name": "Reset demo",
+      "tag": "BUTTON",
+      "outlineWidth": "3px",
+      "outlineStyle": "solid"
+    },
+    {
+      "name": "Start for real",
+      "tag": "BUTTON",
+      "outlineWidth": "3px",
+      "outlineStyle": "solid"
+    },
+    {
+      "name": "Play the sample course",
+      "tag": "BUTTON",
+      "outlineWidth": "3px",
+      "outlineStyle": "solid"
+    },
+    {
+      "name": "Pause",
+      "tag": "BUTTON",
+      "outlineWidth": "3px",
+      "outlineStyle": "solid"
+    },
+    {
+      "name": "Interactive tabletop golf course",
+      "tag": "CANVAS",
+      "outlineWidth": "3px",
+      "outlineStyle": "solid"
+    },
+    {
+      "name": "Aim left",
+      "tag": "BUTTON",
+      "outlineWidth": "3px",
+      "outlineStyle": "solid"
+    },
+    {
+      "name": "Aim right",
+      "tag": "BUTTON",
+      "outlineWidth": "3px",
+      "outlineStyle": "solid"
+    },
+    {
+      "name": "Decrease power",
+      "tag": "BUTTON",
+      "outlineWidth": "3px",
+      "outlineStyle": "solid"
+    },
+    {
+      "name": "Increase power",
+      "tag": "BUTTON",
+      "outlineWidth": "3px",
+      "outlineStyle": "solid"
+    },
+    {
+      "name": "Shoot",
+      "tag": "BUTTON",
+      "outlineWidth": "3px",
+      "outlineStyle": "solid"
+    },
+    {
+      "name": "Reset hole",
+      "tag": "BUTTON",
+      "outlineWidth": "3px",
+      "outlineStyle": "solid"
+    },
+    {
+      "name": "Turn sound on",
+      "tag": "BUTTON",
+      "outlineWidth": "3px",
+      "outlineStyle": "solid"
+    },
+    {
+      "name": "Clear local score history",
+      "tag": "BUTTON",
+      "outlineWidth": "3px",
+      "outlineStyle": "solid"
+    },
+    {
+      "name": "Privacy",
+      "tag": "A",
+      "outlineWidth": "3px",
+      "outlineStyle": "solid"
+    },
+    {
+      "name": "Terms",
+      "tag": "A",
+      "outlineWidth": "3px",
+      "outlineStyle": "solid"
+    },
+    {
+      "name": "Skip to main content PINPOINT DAILY DemoHow i",
+      "tag": "BODY",
+      "outlineWidth": "0px",
+      "outlineStyle": "none"
+    },
+    {
+      "name": "Skip to main content",
+      "tag": "A",
+      "outlineWidth": "3px",
+      "outlineStyle": "solid"
+    }
+  ]
+}
+{
+  "win": "Course complete — you won\n\nYou sank all three cups in 3 shots. That is your local best.\n\nCopy today’s result\nPlay again",
+  "loss": "Course over — try again\n\nYou sank 0 of 3 cups. Sink every cup to win.\n\nCopy today’s result\nPlay again",
+  "network": {
+    "requests": [
+      {
+        "method": "GET",
+        "url": "https://pinpoint-daily.sociobot.in/"
+      },
+      {
+        "method": "GET",
+        "url": "https://pinpoint-daily.sociobot.in/assets/index-D6tXj-zh.js"
+      },
+      {
+        "method": "GET",
+        "url": "https://pinpoint-daily.sociobot.in/assets/index-rcf5x3OB.css"
+      },
+      {
+        "method": "GET",
+        "url": "https://pinpoint-daily.sociobot.in/hero-blueprint.webp"
+      },
+      {
+        "method": "GET",
+        "url": "https://pinpoint-daily.sociobot.in/demo"
+      }
+    ],
+    "nonSameOrigin": [],
+    "nonGet": [],
+    "badResponses": [],
+    "cookies": [],
+    "consoleAndPageErrors": [],
+    "rootHeaders": {
+      "cache-control": "public, must-revalidate, max-age=30",
+      "content-encoding": "br",
+      "content-security-policy": "default-src 'self'; img-src 'self' data:; script-src 'self'; style-src 'self'; connect-src 'self'; font-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
+      "content-type": "text/html",
+      "date": "Wed, 02 Sep 2026 05:33:03 GMT",
+      "etag": "\"90919072\"",
+      "last-modified": "Wed, 02 Sep 2026 04:56:29 GMT",
+      "referrer-policy": "strict-origin-when-cross-origin",
+      "strict-transport-security": "max-age=10886400; includeSubDomains; preload",
+      "vary": "Accept-Encoding",
+      "x-content-type-options": "nosniff",
+      "x-dns-prefetch-control": "off",
+      "x-xss-protection": "1; mode=block"
+    },
+    "serviceWorkers": 0
+  },
+  "boundaries": {
+    "zeroDragShots": "Shots: 0 / 5",
+    "pausedShots": "Shots: 0 / 5",
+    "maxPower": 180,
+    "minPower": 30,
+    "corruptRecovery": {
+      "hole": "Hole 1 of 3",
+      "shots": "Shots: 0 / 5"
+    }
+  },
+  "keyboardWin": {
+    "result": "Course complete — you won\n\nYou sank all three cups in 3 shots. That is your local best.\n\nCopy today’s result\nPlay again",
+    "focusedRole": "results"
+  },
+  "axe": [
+    {
+      "path": "/",
+      "status": 200,
+      "all": [],
+      "serious": []
+    },
+    {
+      "path": "/demo",
+      "status": 200,
+      "all": [],
+      "serious": []
+    },
+    {
+      "path": "/privacy",
+      "status": 200,
+      "all": [],
+      "serious": []
+    },
+    {
+      "path": "/terms",
+      "status": 200,
+      "all": [],
+      "serious": []
+    },
+    {
+      "path": "/not-found-verification",
+      "status": 404,
+      "all": [],
+      "serious": []
+    }
+  ],
+  "mobile": {
+    "canvasTop": 633.46875,
+    "canvasBottom": 839.859375,
+    "actionBottom": 425.46875,
+    "viewportHeight": 844,
+    "smallTargets": [],
+    "reducedMotion": true,
+    "scrollBehavior": "auto",
+    "overflowAt200Percent": false
+  },
+  "fps": {
+    "frames": 120,
+    "elapsedMs": 1999.8999999999999,
+    "fps": 60.0030001500075,
+    "hz": "60"
+  }
+}
