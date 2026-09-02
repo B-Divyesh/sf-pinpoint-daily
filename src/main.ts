@@ -80,7 +80,7 @@ function shell(content: string) {
       <nav aria-label="Main navigation">${link('/demo', 'Demo')}${link('/#how', 'How it works')}${link('/privacy', 'Privacy')}</nav>
     </header>
     <main id="main" tabindex="-1">${content}</main>
-    <footer><span>Play one shared tabletop course each day.</span>${link('/privacy', 'Privacy')}${link('/terms', 'Terms')}<span>Built by Param Factory · build 1.2.0</span></footer>
+    <footer><span>Play one shared tabletop course each day.</span>${link('/privacy', 'Privacy')}${link('/terms', 'Terms')}<span>Blueprint artwork is generated for Pinpoint Daily.</span><span>Built by Param Factory · build 1.2.0</span></footer>
     <div class="sr-only" aria-live="polite" id="announcer"></div>`;
   wireLinks();
 }
@@ -106,7 +106,7 @@ function policy(type: 'privacy' | 'terms') {
     <p>${privacy ? 'Your current run, completed dates, sound setting, and best score use local browser storage. No account is required. Game data is not sent to a server.' : 'Play fairly, do not interfere with the site, and use the game at your own discretion.'}</p>
     <h2>${privacy ? 'How to remove it' : 'Availability'}</h2>
     <p>${privacy ? 'Use “Clear local score” on the game screen, or clear this site’s browser data. Demo data has a separate storage key and is removed when you reset it.' : 'The course and its local storage are provided as-is and may change with future releases.'}</p>
-    <p><a href="/" data-route>Return to today’s course</a></p></section>`);
+    <p><a class="return-link" href="/" data-route>Return to today’s course</a></p></section>`);
 }
 
 function notFound() {

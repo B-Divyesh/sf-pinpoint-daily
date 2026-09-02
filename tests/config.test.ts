@@ -10,9 +10,10 @@ describe('static deployment policy', () => {
     expect(shipped.globalHeaders['Content-Security-Policy']).toContain("frame-ancestors 'none'");
   });
 
-  it('sets immutable caching for built assets and keeps the 404 rewrite', () => {
+  it('sets immutable caching only for hashed build assets and keeps the 404 rewrite', () => {
     const config = JSON.parse(readFileSync('public/staticwebapp.config.json', 'utf8'));
     expect(config.routes.find((route: { route: string }) => route.route === '/assets/*').headers['Cache-Control']).toContain('immutable');
+    expect(config.routes.find((route: { route: string }) => route.route === '/*.webp')).toBeUndefined();
     expect(config.responseOverrides['404'].rewrite).toBe('/404.html');
   });
 });

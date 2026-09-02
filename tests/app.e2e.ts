@@ -96,6 +96,17 @@ test('@claim:visible-prediction the dotted path is visibly drawn before a shot',
 
 test('@claim:visible-course-elements wind, walls, and a moving bumper are visible', async ({ page }) => {
   await page.goto('/demo');
+  const wallPixels = await page.locator('canvas').evaluate((canvas: HTMLCanvasElement) => {
+    const context = canvas.getContext('2d')!;
+    const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
+    let count = 0;
+    for (let index = 0; index < pixels.length; index += 4) {
+      if (pixels[index] === 245 && pixels[index + 1] === 237 && pixels[index + 2] === 215) count++;
+    }
+    return count;
+  });
+  // Walls have a cream outer rail. The ball and other course elements use different colours.
+  expect(wallPixels).toBeGreaterThan(1_000);
   const coralCenter = () => page.locator('canvas').evaluate((canvas: HTMLCanvasElement) => {
     const context = canvas.getContext('2d')!;
     const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
@@ -191,13 +202,18 @@ test('@claim:input-methods keyboard, pointer, pause, and labelled controls work'
   if (!box) throw new Error('Canvas has no visible bounds');
   await page.mouse.click(box.x + box.width * 112 / 800, box.y + box.height * 355 / 480);
   await expect(page.getByText('Shots: 0 / 5', { exact: true })).toBeVisible();
+  await takeWinningShot(page, 0);
+  await expect(page.getByText('Shots: 1 / 5', { exact: true })).toBeVisible();
+  await expect(page.getByText('Ball rolling. Watch the bounce.')).toBeVisible();
+  await page.getByRole('button', { name: 'Reset hole' }).click();
+  await canvas.focus();
   await page.keyboard.press('ArrowRight');
   await page.keyboard.press('Enter');
-  await expect(page.getByText('Shots: 1 / 5', { exact: true })).toBeVisible();
+  await expect(page.getByText('Shots: 2 / 5', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Reset hole' }).click();
   await page.getByRole('button', { name: 'Decrease power' }).click();
   await page.getByRole('button', { name: 'Shoot' }).click();
-  await expect(page.getByText('Shots: 2 / 5', { exact: true })).toBeVisible();
+  await expect(page.getByText('Shots: 3 / 5', { exact: true })).toBeVisible();
 });
 
 test('@claim:distinct-outcomes @claim:best-score @claim:completed-date-persistence @claim:result-sharing scripted runs persist and share distinct results', async ({ page, browser }) => {
@@ -308,13 +324,30 @@ test('390x844 first screen contains the explanation, action, and playable board'
   expect(geometry.action.bottom).toBeLessThan(geometry.viewport);
   expect(geometry.canvas.top).toBeLessThan(geometry.viewport);
   expect(geometry.canvas.bottom).toBeLessThanOrEqual(geometry.viewport + 2);
-  const undersized = await page.locator('a[href], button, canvas[tabindex]').evaluateAll(elements => elements
-    .map(element => element.getBoundingClientRect())
-    .filter(rect => rect.width > 0 && rect.height > 0 && rect.top < innerHeight && (rect.width < 44 || rect.height < 44))
-    .length);
-  expect(undersized).toBe(0);
   await page.getByRole('button', { name: 'Play the sample course' }).click();
   await expect(page.getByRole('heading', { name: 'Aim, check the dotted path, then shoot' })).toBeFocused();
+});
+
+test('390x844 exposes 44px targets through every public page, including footer and legal links', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const route of ['/', '/demo', '/privacy', '/terms', '/not-found']) {
+    await page.goto(route);
+    const targets = page.locator('a[href]:not(.skip), button, canvas[tabindex]');
+    for (let index = 0; index < await targets.count(); index++) {
+      const target = targets.nth(index);
+      const box = await target.boundingBox();
+      if (!box) continue;
+      expect(box!.width, `${route} target ${index} width`).toBeGreaterThanOrEqual(44);
+      expect(box!.height, `${route} target ${index} height`).toBeGreaterThanOrEqual(44);
+    }
+  }
+});
+
+test('the public footer discloses generated blueprint artwork', async ({ page }) => {
+  for (const route of ['/', '/demo', '/privacy', '/terms', '/not-found']) {
+    await page.goto(route);
+    await expect(page.getByText('Blueprint artwork is generated for Pinpoint Daily.')).toBeVisible();
+  }
 });
 
 test('@claim:static-deploy route responses, metadata, focus, and the designed 404 work', async ({ page }) => {

@@ -25,7 +25,7 @@
     "claim": "Wind, walls, and the moving bumper are visible during play",
     "where": "How it works, README",
     "test": "npm run test:browser -- --grep @claim:visible-course-elements",
-    "sandbox": "Fresh /demo; identify the coral bumper, observe its movement during a shot, advance, and assert the wind label."
+    "sandbox": "Fresh /demo; count the cream wall pixels, identify the coral bumper, observe its movement during a shot, advance, and assert the wind label."
   },
   {
     "id": "five-shot-limit",
@@ -60,7 +60,7 @@
     "claim": "The game supports drag, keyboard, and labelled on-screen controls, and pause blocks shots",
     "where": "game instructions, README",
     "test": "npm run test:browser -- --grep @claim:input-methods",
-    "sandbox": "Fresh /demo; exercise pause, keyboard aim/fire, zero-length pointer input, and on-screen controls."
+    "sandbox": "Fresh /demo; exercise pause, confirm zero-length pointer input does not fire, complete a non-zero drag shot and assert its rolling state, then use keyboard aim/fire and labelled on-screen controls."
   },
   {
     "id": "distinct-outcomes",
