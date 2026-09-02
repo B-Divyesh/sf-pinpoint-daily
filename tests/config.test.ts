@@ -30,16 +30,11 @@ describe('claims registry', () => {
 
   it('keeps the required repair claims and exact tagged browser commands', () => {
     const claims = JSON.parse(readFileSync('.factory/claims.json', 'utf8')) as { id: string; test: string }[];
-    for (const id of ['restart-reset', 'input-methods', 'generated-artwork', 'demo-focus', 'clear-local-score-history']) {
+    for (const id of ['restart-reset', 'input-methods', 'demo-focus', 'clear-local-score-history']) {
       const claim = claims.find(entry => entry.id === id);
       expect(claim, `missing ${id} claim`).toBeDefined();
       expect(claim!.test).toBe(`npm run test:browser -- --grep @claim:${id}`);
     }
   });
 
-  it('includes the public generated-artwork disclosure in the copy audit', () => {
-    const publicCopy = 'Blueprint artwork is generated for Pinpoint Daily.';
-    expect(readFileSync('src/main.ts', 'utf8')).toContain(publicCopy);
-    expect(readFileSync('.factory/copy-audit.md', 'utf8')).toContain(publicCopy);
-  });
 });

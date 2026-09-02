@@ -74,13 +74,13 @@ function updateMetadata(path: string) {
 }
 
 function shell(content: string) {
-  app.innerHTML = `<a class="skip" href="#main">Skip to game</a>
+  app.innerHTML = `<a class="skip" href="#main">Skip to main content</a>
     <header>
       <a class="wordmark" href="/" data-route aria-label="Pinpoint Daily home"><span>PIN</span>POINT <b>DAILY</b></a>
       <nav aria-label="Main navigation">${link('/demo', 'Demo')}${link('/#how', 'How it works')}${link('/privacy', 'Privacy')}</nav>
     </header>
     <main id="main" tabindex="-1">${content}</main>
-    <footer><span>Play one shared tabletop course each day.</span>${link('/privacy', 'Privacy')}${link('/terms', 'Terms')}<span>Blueprint artwork is generated for Pinpoint Daily.</span><span>Built by Param Factory · build 1.2.2</span></footer>
+    <footer><span>Play one shared tabletop course each day.</span>${link('/privacy', 'Privacy')}${link('/terms', 'Terms')}<span>Built by Param Factory · build 1.2.3</span></footer>
     <div class="sr-only" aria-live="polite" id="announcer"></div>`;
   wireLinks();
 }
@@ -113,7 +113,7 @@ function policy(type: 'privacy' | 'terms') {
 function notFound() {
   stopGame();
   stopGame = () => {};
-  shell(`<section class="legal not-found"><p class="eyebrow">404</p><h1>This course does not exist</h1><p>The address does not match a Pinpoint Daily page.</p><p><a class="button primary" href="/" data-route>Return to today’s course</a></p></section>`);
+  shell(`<section class="legal not-found"><p class="eyebrow">PAGE NOT FOUND · 404</p><h1>This page does not exist</h1><p>The address does not match a Pinpoint Daily page.</p><p><a class="button primary" href="/" data-route>Return to the game</a></p></section>`);
 }
 
 function home() {
@@ -151,6 +151,9 @@ function home() {
       stopGame = () => {};
       localStorage.removeItem(storageKey(true));
       home();
+      const reset = document.querySelector<HTMLButtonElement>('#reset-demo');
+      reset?.focus();
+      document.querySelector<HTMLElement>('#announcer')!.textContent = 'Demo reset.';
     });
     document.querySelector('#start-real')?.addEventListener('click', () => {
       stopGame();
@@ -261,7 +264,7 @@ function mountGame(root: Element, seed: number, isDemo: boolean) {
       oscillator.start();
       oscillator.stop(audioContext.currentTime + duration);
     } catch {
-      status.textContent = 'Sound could not start in this browser. The game still works without it.';
+      status.textContent = 'Sound could not start in this browser.';
     }
   };
   const coords = (event: PointerEvent): Vec => {
@@ -458,7 +461,7 @@ function mountGame(root: Element, seed: number, isDemo: boolean) {
     ctx.beginPath(); ctx.moveTo(hole.cup.x + 3, hole.cup.y - 45); ctx.lineTo(hole.cup.x + 29, hole.cup.y - 36); ctx.lineTo(hole.cup.x + 3, hole.cup.y - 27); ctx.fill();
     const aim = dragAim || (!sim.moving && !outcome ? { x: Math.cos(angle) * power, y: Math.sin(angle) * power } : null);
     if (aim && !paused) {
-      const points = predictedPoints(hole, sim.ball, aim);
+      const points = predictedPoints(hole, sim.snapshot(), aim);
       ctx.fillStyle = '#53d6e6';
       points.forEach((point, index) => { if (index % 2 === 0) { ctx.beginPath(); ctx.arc(point.x, point.y, 2.5, 0, Math.PI * 2); ctx.fill(); } });
       ctx.strokeStyle = 'rgba(83,214,230,.75)'; ctx.lineWidth = 2;

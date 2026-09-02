@@ -92,8 +92,18 @@ export class GameSimulation {
   }
 }
 
-export function predictedPoints(hole: Hole, from: Vec, aim: Vec) {
-  const sim = new GameSimulation(hole); sim.ball = { ...from }; sim.elapsed = 0; if (!sim.shoot(aim)) return [] as Vec[];
+/**
+ * Predict from the exact resting state that will receive the shot.  In
+ * particular, elapsed time controls the moving bumper's phase, so resetting a
+ * ball must not reset the bumper in the preview.
+ */
+export function predictedPoints(hole: Hole, snapshot: SimulationSnapshot, aim: Vec) {
+  const sim = new GameSimulation(hole, {
+    ...snapshot,
+    ball: { ...snapshot.ball },
+    velocity: { x: 0, y: 0 },
+  });
+  if (!sim.shoot(aim)) return [] as Vec[];
   const points: Vec[] = [];
   for (let i = 0; i < 150 && sim.moving && !sim.inCup; i++) { sim.step(); if (i % 3 === 0) points.push({ ...sim.ball }); }
   return points;

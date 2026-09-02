@@ -6,7 +6,7 @@ The landing and demo screens were read aloud as one flow. The first screen state
 
 | Location | Sentence or label | Words | Result |
 |---|---|---:|---|
-| Skip link | Skip to game | 3 | Pass |
+| Skip link | Skip to main content | 4 | Pass |
 | Demo banner | Demo — sample data, saved only here | 6 | Pass |
 | Demo action | Reset demo | 2 | Pass |
 | Demo action | Start for real | 3 | Pass |
@@ -51,8 +51,7 @@ The landing and demo screens were read aloud as one flow. The first screen state
 | Clipboard result | Today’s result copied. | 3 | Pass |
 | Clipboard fallback | Copy the selected result above. | 5 | Pass |
 | Footer | Play one shared tabletop course each day. | 7 | Pass |
-| Footer | Blueprint artwork is generated for Pinpoint Daily. | 7 | Pass |
-| Footer | Built by Param Factory · build 1.2.2 | 7 | Pass |
+| Footer | Built by Param Factory · build 1.2.3 | 7 | Pass |
 
 ## Legal and 404 routes
 
@@ -68,13 +67,15 @@ The landing and demo screens were read aloud as one flow. The first screen state
 | Privacy removal | Clear this site’s browser data to delete all saved game data. | 12 | Pass |
 | Privacy removal | Reset demo removes its separate demo key. | 7 | Pass |
 | Terms intro | Pinpoint Daily is free to play. | 6 | Pass |
-| 404 h1 | This page is not on today’s course | 7 | Pass |
+| 404 eyebrow | PAGE NOT FOUND · 404 | 4 | Pass |
+| 404 h1 | This page does not exist | 5 | Pass |
 | 404 detail | The address does not point to a Pinpoint Daily page. | 10 | Pass |
-| 404 footer | Built by Param Factory · build 1.2.2 | 7 | Pass |
+| 404 action | Return to the game | 4 | Pass |
+| 404 footer | Built by Param Factory · build 1.2.3 | 7 | Pass |
 
 ## README
 
-The longest README sentence has 21 words: “The course uses a UTC daily seed, fixed 60 Hz physics, five shots per hole, visible wind, and one moving bumper.” All other prose sentences have 19 words or fewer.
+The longest README sentence has 19 words: “Each hole has five shots, visible wind, and one moving bumper.” All other prose sentences have 19 words or fewer.
 
 No sentence exceeds 22 words. No banned plain-words term appears.
 

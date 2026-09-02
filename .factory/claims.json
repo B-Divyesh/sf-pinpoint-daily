@@ -57,10 +57,10 @@
   },
   {
     "id": "local-privacy",
-    "claim": "The game has no accounts, ads, analytics, cookies, or third-party game requests",
+    "claim": "The game has no accounts, ads, analytics, cookies, or game-data requests",
     "where": "privacy section, privacy page, README",
     "test": "npm run test:browser -- --grep @claim:local-privacy",
-    "sandbox": "Fresh /demo; record every request and cookie through play and navigation, allowing only the product origin."
+    "sandbox": "Fresh /demo; record methods, URLs, and cookies through play and navigation, allowing only same-origin document and static-asset GET requests."
   },
   {
     "id": "input-methods",
@@ -124,13 +124,6 @@
     "where": "landing facts, terms, README",
     "test": "npm run test:browser -- --grep @claim:free-play",
     "sandbox": "Fresh /demo; assert the playable Shoot action and absence of sign-in and payment controls."
-  },
-  {
-    "id": "generated-artwork",
-    "claim": "Blueprint artwork is generated for Pinpoint Daily",
-    "where": "footer on every public route",
-    "test": "npm run test:browser -- --grep @claim:generated-artwork",
-    "sandbox": "Open every public route, assert the disclosure, and verify the shipped hero bytes match the generated asset documented in the design provenance."
   },
   {
     "id": "static-deploy",

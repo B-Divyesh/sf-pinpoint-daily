@@ -1,7 +1,6 @@
 import { expect, Page, test } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { GameSimulation, SimulationSnapshot, Vec, makeCourse, predictedPoints } from '../src/game';
 
 const ORIGIN = process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:4173';
 const DEMO_KEY = 'demo:daily-v1';
@@ -11,6 +10,17 @@ const winningShots = [
   { start: { x: 105, y: 126 }, angle: -0.6915926535898163, power: 114 },
   { start: { x: 130, y: 350 }, angle: 0.40840734641018445, power: 98 },
 ];
+
+function simulatedPoints(holeIndex: number, snapshot: SimulationSnapshot, aim: Vec): Vec[] {
+  const simulation = new GameSimulation(makeCourse(20260901)[holeIndex], snapshot);
+  simulation.shoot(aim);
+  const points: Vec[] = [];
+  for (let frame = 0; frame < 150 && simulation.moving && !simulation.inCup; frame++) {
+    simulation.step();
+    if (frame % 3 === 0) points.push({ ...simulation.ball });
+  }
+  return points;
+}
 
 async function loseHole(page: Page, nextHole?: number) {
   for (let shot = 0; shot < 5; shot++) {
@@ -61,6 +71,8 @@ test('@claim:demo-isolation the landing action and query alias use isolated demo
   await page.getByRole('button', { name: 'Reset demo' }).click();
   expect(await page.evaluate(key => localStorage.getItem(key), DEMO_KEY)).toBeNull();
   expect(await page.evaluate(key => localStorage.getItem(key), REAL_KEY)).toBe(originalReal);
+  await expect(page.getByRole('button', { name: 'Reset demo' })).toBeFocused();
+  await expect(page.locator('#announcer')).toHaveText('Demo reset.');
 });
 
 test('@claim:demo-focus Play the sample course moves focus to the demo course', async ({ page }) => {
@@ -84,7 +96,7 @@ test('@claim:shared-daily-course fresh demo contexts render the same three-hole 
   await secondContext.close();
 });
 
-test('@claim:visible-prediction the dotted path is visibly drawn before a shot', async ({ page }) => {
+test('@claim:visible-prediction the dotted path matches first and later shots before release', async ({ page }) => {
   await page.goto('/demo');
   const cyanPixels = () => page.locator('canvas').evaluate((canvas: HTMLCanvasElement) => {
     const context = canvas.getContext('2d')!;
@@ -100,6 +112,27 @@ test('@claim:visible-prediction the dotted path is visibly drawn before a shot',
   await page.waitForTimeout(50);
   const withoutPrediction = await cyanPixels();
   expect(withPrediction).toBeGreaterThan(withoutPrediction + 100);
+
+  const hole = makeCourse(20260901)[0];
+  const first = new GameSimulation(hole);
+  const firstAim = { x: 120, y: -65 };
+  expect(predictedPoints(hole, first.snapshot(), firstAim)).toEqual(simulatedPoints(0, first.snapshot(), firstAim));
+  first.shoot({ x: 165, y: -30 });
+  for (let frame = 0; frame < 300 && first.moving; frame++) first.step();
+  first.reset();
+  const later = first.snapshot();
+  const bumperAim = [{ x: 82, y: -160 }, { x: 96, y: -150 }, { x: 110, y: -145 }, { x: 125, y: -135 }, { x: 140, y: -120 }, { x: 155, y: -105 }].find(aim => {
+    const trial = new GameSimulation(hole, later);
+    trial.shoot(aim);
+    for (let frame = 0; frame < 150 && trial.moving; frame++) {
+      trial.step();
+      const bumper = trial.bumperAt();
+      if (Math.hypot(trial.ball.x - bumper.x, trial.ball.y - bumper.y) <= 24.01) return true;
+    }
+    return false;
+  });
+  expect(bumperAim).toBeDefined();
+  expect(predictedPoints(hole, later, bumperAim!)).toEqual(simulatedPoints(0, later, bumperAim!));
 });
 
 test('@claim:visible-course-elements wind, walls, and a moving bumper are visible', async ({ page }) => {
@@ -237,14 +270,14 @@ test('@claim:sound-setting sound plays after a gesture and the setting survives 
 });
 
 test('@claim:local-privacy a complete local interaction sends no third-party requests', async ({ page }) => {
-  const requests: string[] = [];
-  page.on('request', request => requests.push(request.url()));
+  const requests: { url: string; method: string }[] = [];
+  page.on('request', request => requests.push({ url: request.url(), method: request.method() }));
   await page.goto('/demo');
   await page.getByRole('button', { name: 'Turn sound on' }).click();
   await page.locator('#shoot').click();
   await page.locator('#reset-hole').click();
   await page.getByRole('link', { name: 'Privacy' }).first().click();
-  expect(requests.every(url => new URL(url).origin === ORIGIN)).toBe(true);
+  expect(requests.every(request => new URL(request.url).origin === ORIGIN && request.method === 'GET')).toBe(true);
   expect(await page.context().cookies()).toEqual([]);
 });
 
@@ -274,6 +307,17 @@ test('@claim:input-methods drag, controls, pause, and every advertised keyboard 
   await page.keyboard.press('ArrowDown');
   await expect(page.getByText('Power set to 85.')).toBeVisible();
   await page.keyboard.press('ArrowRight');
+  expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)!).run.angle, DEMO_KEY)).toBeCloseTo(-.28);
+  await page.keyboard.press('ArrowLeft');
+  expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)!).run.angle, DEMO_KEY)).toBeCloseTo(-.4);
+  await page.getByRole('button', { name: 'Aim right' }).click();
+  expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)!).run.angle, DEMO_KEY)).toBeCloseTo(-.28);
+  await page.getByRole('button', { name: 'Aim left' }).click();
+  expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)!).run.angle, DEMO_KEY)).toBeCloseTo(-.4);
+  await page.getByRole('button', { name: 'Increase power' }).click();
+  expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)!).run.power, DEMO_KEY)).toBe(95);
+  await canvas.focus();
+  await page.keyboard.press('ArrowRight');
   await page.keyboard.press('Enter');
   await expect(page.getByText('Shots: 2 / 5', { exact: true })).toBeVisible();
   await page.keyboard.press('r');
@@ -283,6 +327,7 @@ test('@claim:input-methods drag, controls, pause, and every advertised keyboard 
   expect(resetRun.simulation.ball).toEqual(winningShots[0].start);
   expect(resetRun.simulation.velocity).toEqual({ x: 0, y: 0 });
   await page.getByRole('button', { name: 'Decrease power' }).click();
+  expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)!).run.power, DEMO_KEY)).toBe(85);
   await page.getByRole('button', { name: 'Shoot' }).click();
   await expect(page.getByText('Shots: 3 / 5', { exact: true })).toBeVisible();
 });
@@ -407,11 +452,19 @@ test('@claim:frame-rate-target the game targets 60 fps at 390px under CPU thrott
   expect(rate).toBeLessThanOrEqual(65);
 });
 
-test('@claim:free-play the demo starts without an account or payment step', async ({ page }) => {
+test('@claim:free-play the complete demo run has no account or payment step', async ({ page }) => {
   await page.goto('/demo');
-  await expect(page.getByRole('button', { name: 'Shoot' })).toBeVisible();
+  for (let hole = 0; hole < winningShots.length; hole++) {
+    await expect(page.getByRole('button', { name: 'Shoot' })).toBeVisible();
+    await expect(page.locator('input[type="email"], input[type="password"]')).toHaveCount(0);
+    await expect(page.getByText(/buy|subscribe|payment/i)).toHaveCount(0);
+    await takeWinningShot(page, hole);
+    if (hole < 2) await expect(page.getByText(`Hole ${hole + 2} of 3`, { exact: true })).toBeVisible({ timeout: 15_000 });
+  }
+  await expect(page.getByRole('heading', { name: 'Course complete — you won' })).toBeVisible({ timeout: 15_000 });
   await expect(page.locator('input[type="email"], input[type="password"]')).toHaveCount(0);
   await expect(page.getByText(/buy|subscribe|payment/i)).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Play again' })).toBeVisible();
 });
 
 test('390x844 first screen contains the explanation, action, and playable board', async ({ page }) => {
@@ -442,21 +495,6 @@ test('390x844 exposes 44px targets through every public page, including footer a
   }
 });
 
-test('@claim:generated-artwork every public route discloses the documented generated blueprint artwork', async ({ page }) => {
-  for (const route of ['/', '/demo', '/privacy', '/terms', '/not-found']) {
-    await page.goto(route);
-    await expect(page.getByText('Blueprint artwork is generated for Pinpoint Daily.')).toBeVisible();
-  }
-  const response = await page.request.get('/hero-blueprint.webp');
-  expect(response.ok()).toBe(true);
-  expect(response.headers()['content-type']).toContain('image/webp');
-  const hash = (value: Buffer) => createHash('sha256').update(value).digest('hex');
-  expect(hash(await response.body())).toBe(hash(readFileSync('public/hero-blueprint.webp')));
-  const provenance = readFileSync('.factory/design.md', 'utf8');
-  expect(provenance).toContain('`public/hero-blueprint.webp` is an original generated editorial illustration');
-  expect(provenance).toContain('generated via `/opt/fleet/lib/gen-image.sh`');
-});
-
 test('@claim:static-deploy route responses, metadata, focus, and the designed 404 work', async ({ page }) => {
   const demoResponse = await page.goto('/demo');
   expect(demoResponse?.status()).toBe(200);
@@ -478,9 +516,10 @@ test('@claim:static-deploy route responses, metadata, focus, and the designed 40
   const missingResponse = await page.goto('/does-not-exist-qa');
   expect(missingResponse?.status()).toBe(404);
   await expect(page).toHaveTitle('Page not found — Pinpoint Daily');
-  await expect(page.getByRole('heading', { name: 'This page is not on today’s course' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'This page does not exist' })).toBeVisible();
   await expect(page.getByRole('banner')).toBeVisible();
   await expect(page.getByRole('contentinfo')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'How it works' })).toBeVisible();
   await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', 'This address does not match a Pinpoint Daily page.');
 });
 

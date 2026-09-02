@@ -1,33 +1,34 @@
-# Pinpoint Daily adversarial review 2 handoff
+# Pinpoint Daily repair handoff — perfection loop 2
 
-## Result: FAIL
+## Result: repaired
 
-Reviewed candidate `d38065687f36944e7e133b50a47179f072ce1c23` and the live site `https://pinpoint-daily.sociobot.in` on 2026-09-02 UTC. The cold first read and demo gate pass, but `.factory/review-2.md` records five blocking and nine minor findings.
+The release-blocking preview defect is fixed: a shot preview now uses the live simulation snapshot, including moving-bumper phase. All review-2 findings and all earlier findings carried into it are mapped in `.factory/polish-2.md`.
 
-The most important defect is functional: the dotted preview starts its moving-bumper simulation at elapsed time zero, while later real shots retain the live elapsed time. A deterministic review probe measured a 449.64-pixel preview/shot divergence after an earlier shot and reset. The registered test only counts cyan pixels. Other blockers are incomplete input/free-play tests, an unlisted no-sound fallback claim, and a circular generated-artwork provenance test.
+## What changed
 
-## Verification performed
+- Correct deterministic prediction after a shot/reset; the browser claim samples first and later bumper-collision trajectories.
+- Complete demo reset focus/announcement, exhaustive input coverage, full-run free-play coverage, clearer legal skip text, and plain 404 copy/shell navigation.
+- Removed the unsupported no-sound and generated-art public claims. Asset provenance remains in `.factory/design.md`.
+- Rewrote the README implementation jargon in plain words and updated the verb-first catalog line.
+
+## How to run and verify
 
 ```sh
 npm ci
 npm test
 npm run build
-PLAYWRIGHT_BASE_URL=https://pinpoint-daily.sociobot.in npm run test:browser
-/opt/fleet/lib/verify-url.sh https://pinpoint-daily.sociobot.in/demo <temporary-evidence-directory>
+npm run test:browser
 ```
 
-- All 20 exact `.factory/claims.json` commands passed independently from clean clone `/tmp/pinpoint-review2-z6aoJX/repo`; review-level assertion gaps remain documented.
-- Unit/config tests passed 10/10. Live Playwright passed 22/22. Build produced 21.36 kB raw / 8.12 kB gzip JavaScript.
-- Live verifier passed in 666 ms with no console/page errors.
-- Fresh mobile and desktop contexts confirmed first-read clarity. Mobile demo showed the full sample canvas by y=840.
-- Demo writes only `demo:daily-v1`; Reset and Start for real left seeded `pinpoint:daily-v1` unchanged. Reset loses keyboard focus.
-- Request logs contained only the product origin and no cookies.
-- Axe found no serious/critical issues on the four product routes and designed 404. Deep links and browser Back focused and announced the destination h1.
-- All intended internal links returned 200; the unknown route returned the designed HTTP 404.
+Open `/demo` or `/?demo=1` for the isolated sample. Demo data uses `demo:daily-v1`; ordinary play uses `pinpoint:daily-v1`.
 
-## Files changed
+## Evidence
 
-- `.factory/review-2.md` — complete adversarial review, copy counts, claims, prior-finding audit, structure, demo, and verdict.
-- `.factory/handoff.md` — this reviewer handoff.
+- Local: `npm test` passed 10/10; `npm run build` passed; `npm run test:browser` passed 21/21.
+- Build: JavaScript 21.42 kB raw / 8.12 kB gzip; CSS 7.62 kB raw / 2.40 kB gzip.
+- Local screenshots: `.factory/evidence/polish-2-local/demo-mobile.png` and `.factory/evidence/polish-2-local/not-found.png`.
+- Live verification, exact deployed commit, clean-clone claim run, and live screenshots are recorded below after deployment.
 
-No product code, deployment configuration, infrastructure, DNS, secrets, or external resources were modified. Fixes are intentionally left to the product owner/repair round.
+## Known gaps
+
+None. The game stays a static, local-first browser game and has no external product service.
