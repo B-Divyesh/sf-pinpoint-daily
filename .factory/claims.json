@@ -7,6 +7,13 @@
     "sandbox": "Fresh browser context; seed ordinary storage, select the landing action, change demo settings, reset, and compare both namespaces."
   },
   {
+    "id": "demo-focus",
+    "claim": "Play the sample course moves focus to the demo course",
+    "where": "demo first-screen action",
+    "test": "npm run test:browser -- --grep @claim:demo-focus",
+    "sandbox": "Fresh /demo; select Play the sample course and assert the course heading receives focus."
+  },
+  {
     "id": "shared-daily-course",
     "claim": "Everyone gets the same three-hole course for a UTC day",
     "where": "landing page, footer, README",
@@ -89,6 +96,13 @@
     "where": "privacy page",
     "test": "npm run test:browser -- --grep @claim:completed-date-persistence",
     "sandbox": "Fresh /demo; complete the deterministic win, assert the sample date is stored, reload, and assert it remains stored."
+  },
+  {
+    "id": "clear-local-score-history",
+    "claim": "Clear local score history asks for confirmation and removes only the best score and completed dates",
+    "where": "game control and privacy page",
+    "test": "npm run test:browser -- --grep @claim:clear-local-score-history",
+    "sandbox": "Fresh /demo; seed best score, completed dates, sound, and a current run; cancel once, then confirm; assert only best and completed dates are removed."
   },
   {
     "id": "result-sharing",

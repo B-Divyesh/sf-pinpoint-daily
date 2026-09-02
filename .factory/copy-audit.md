@@ -25,6 +25,13 @@ The landing and demo screens were read aloud as one flow. The first screen state
 | Control | Increase power | 2 | Pass |
 | Control | Turn sound on | 3 | Pass |
 | Control | Turn sound off | 3 | Pass |
+| Control | Clear local score history | 4 | Pass |
+| Confirmation title | Clear saved score history? | 4 | Pass |
+| Confirmation detail | This deletes the best score and completed dates for this demo. | 11 | Pass |
+| Confirmation detail | It keeps your current run and sound setting. | 9 | Pass |
+| Confirmation warning | This cannot be undone. | 5 | Pass |
+| Confirmation action | Keep saved data | 3 | Pass |
+| Confirmation action | Clear best score and completed dates | 6 | Pass |
 | How h2 | Play the daily course in three steps | 7 | Pass |
 | Step | Read the board. | 3 | Pass |
 | Step detail | Wind, walls, and the moving bumper are visible. | 8 | Pass |
@@ -45,7 +52,7 @@ The landing and demo screens were read aloud as one flow. The first screen state
 | Clipboard fallback | Copy the selected result above. | 5 | Pass |
 | Footer | Play one shared tabletop course each day. | 7 | Pass |
 | Footer | Blueprint artwork is generated for Pinpoint Daily. | 7 | Pass |
-| Footer | Built by Param Factory · build 1.2.1 | 7 | Pass |
+| Footer | Built by Param Factory · build 1.2.2 | 7 | Pass |
 
 ## Legal and 404 routes
 
@@ -56,9 +63,14 @@ The landing and demo screens were read aloud as one flow. The first screen state
 | Privacy storage | Your current run, completed dates, sound setting, and best score use local browser storage. | 13 | Pass |
 | Privacy storage | No account is required. | 4 | Pass |
 | Privacy storage | Game data is not sent to a server. | 8 | Pass |
+| Privacy removal | Use “Clear local score history” to delete this storage key’s best score and completed dates. | 15 | Pass |
+| Privacy removal | It keeps the current run and sound setting. | 8 | Pass |
+| Privacy removal | Clear this site’s browser data to delete all saved game data. | 12 | Pass |
+| Privacy removal | Reset demo removes its separate demo key. | 7 | Pass |
 | Terms intro | Pinpoint Daily is free to play. | 6 | Pass |
 | 404 h1 | This page is not on today’s course | 7 | Pass |
 | 404 detail | The address does not point to a Pinpoint Daily page. | 10 | Pass |
+| 404 footer | Built by Param Factory · build 1.2.2 | 7 | Pass |
 
 ## README
 

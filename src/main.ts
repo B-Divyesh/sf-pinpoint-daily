@@ -80,7 +80,7 @@ function shell(content: string) {
       <nav aria-label="Main navigation">${link('/demo', 'Demo')}${link('/#how', 'How it works')}${link('/privacy', 'Privacy')}</nav>
     </header>
     <main id="main" tabindex="-1">${content}</main>
-    <footer><span>Play one shared tabletop course each day.</span>${link('/privacy', 'Privacy')}${link('/terms', 'Terms')}<span>Blueprint artwork is generated for Pinpoint Daily.</span><span>Built by Param Factory · build 1.2.1</span></footer>
+    <footer><span>Play one shared tabletop course each day.</span>${link('/privacy', 'Privacy')}${link('/terms', 'Terms')}<span>Blueprint artwork is generated for Pinpoint Daily.</span><span>Built by Param Factory · build 1.2.2</span></footer>
     <div class="sr-only" aria-live="polite" id="announcer"></div>`;
   wireLinks();
 }
@@ -105,7 +105,8 @@ function policy(type: 'privacy' | 'terms') {
     <h2>${privacy ? 'What is stored' : 'Use of the game'}</h2>
     <p>${privacy ? 'Your current run, completed dates, sound setting, and best score use local browser storage. No account is required. Game data is not sent to a server.' : 'Play fairly, do not interfere with the site, and use the game at your own discretion.'}</p>
     <h2>${privacy ? 'How to remove it' : 'Availability'}</h2>
-    <p>${privacy ? 'Use “Clear local score” on the game screen, or clear this site’s browser data. Demo data has a separate storage key and is removed when you reset it.' : 'The course and its local storage are provided as-is and may change with future releases.'}</p>
+    <p>${privacy ? 'Use “Clear local score history” to delete this storage key’s best score and completed dates. It keeps the current run and sound setting.' : 'The course and its local storage are provided as-is and may change with future releases.'}</p>
+    ${privacy ? '<p>Clear this site’s browser data to delete all saved game data. Reset demo removes its separate demo key.</p>' : ''}
     <p><a class="return-link" href="/" data-route>Return to today’s course</a></p></section>`);
 }
 
@@ -198,7 +199,8 @@ function mountGame(root: Element, seed: number, isDemo: boolean) {
   ctx.scale(ratio, ratio);
   root.innerHTML = `<div class="game-wrap"><div class="score-strip"><span id="hole-label">Hole 1 of 3</span><span id="shot-label">Shots: 0 / ${MAX_SHOTS}</span><span id="win-label">Cups: 0 / 3</span><span id="wind-label"></span><button id="pause" aria-pressed="false">Pause</button></div></div>
     <div class="game-controls"><button id="left" aria-label="Aim left">← Aim</button><button id="right" aria-label="Aim right">Aim →</button><button id="less">Decrease power</button><button id="more">Increase power</button><button class="shoot" id="shoot">Shoot</button><button id="reset-hole">Reset hole</button><button id="sound" aria-pressed="false">Turn sound on</button></div>
-    <div class="game-status" id="game-status" aria-live="polite">Drag from the ball, or use arrow keys and Enter.</div><div class="results" id="results" tabindex="-1" hidden></div><button class="clear-score" id="clear-score">Clear local score</button>`;
+    <div class="game-status" id="game-status" aria-live="polite">Drag from the ball, or use arrow keys and Enter.</div><div class="results" id="results" tabindex="-1" hidden></div><button class="clear-score" id="clear-score">Clear local score history</button>
+    <dialog class="confirm-dialog" id="clear-score-dialog" aria-labelledby="clear-score-title" aria-describedby="clear-score-detail clear-score-warning"><h2 id="clear-score-title">Clear saved score history?</h2><p id="clear-score-detail">This deletes the best score and completed dates for this ${isDemo ? 'demo' : 'game'}. It keeps your current run and sound setting.</p><p id="clear-score-warning">This cannot be undone.</p><div class="dialog-actions"><button id="cancel-clear-score" type="button">Keep saved data</button><button class="primary" id="confirm-clear-score" type="button">Clear best score and completed dates</button></div></dialog>`;
   root.querySelector('.game-wrap')!.append(canvas);
 
   let stored = load(key);
@@ -228,6 +230,8 @@ function mountGame(root: Element, seed: number, isDemo: boolean) {
   const windLabel = root.querySelector<HTMLElement>('#wind-label')!;
   const soundButton = root.querySelector<HTMLButtonElement>('#sound')!;
   const pauseButton = root.querySelector<HTMLButtonElement>('#pause')!;
+  const clearScoreButton = root.querySelector<HTMLButtonElement>('#clear-score')!;
+  const clearScoreDialog = root.querySelector<HTMLDialogElement>('#clear-score-dialog')!;
 
   const runState = (): SavedRun => ({ seed, holeIndex, shots, total, holesWon, angle, power, simulation: sim.snapshot(), outcome });
   const persist = () => {
@@ -332,11 +336,17 @@ function mountGame(root: Element, seed: number, isDemo: boolean) {
     persist();
     if (stored.sound) void tone(520, .12);
   });
-  root.querySelector('#clear-score')?.addEventListener('click', () => {
+  clearScoreButton.addEventListener('click', () => clearScoreDialog.showModal());
+  root.querySelector('#cancel-clear-score')?.addEventListener('click', () => clearScoreDialog.close());
+  root.querySelector('#confirm-clear-score')?.addEventListener('click', () => {
     stored.best = null;
     stored.completed = [];
-    persist();
-    status.textContent = 'Local score cleared. Your current run remains.';
+    // Do not call persist here: it would create or overwrite a current-run snapshot.
+    // This action deliberately changes only the score-history fields shown in its label.
+    save(key, stored);
+    clearScoreDialog.close();
+    clearScoreButton.focus();
+    status.textContent = 'Saved score history cleared. Your current run and sound setting remain.';
   });
 
   function renderResult() {

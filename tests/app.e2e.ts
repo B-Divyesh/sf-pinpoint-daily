@@ -63,6 +63,12 @@ test('@claim:demo-isolation the landing action and query alias use isolated demo
   expect(await page.evaluate(key => localStorage.getItem(key), REAL_KEY)).toBe(originalReal);
 });
 
+test('@claim:demo-focus Play the sample course moves focus to the demo course', async ({ page }) => {
+  await page.goto('/demo');
+  await page.getByRole('button', { name: 'Play the sample course' }).click();
+  await expect(page.getByRole('heading', { name: 'Aim, check the dotted path, then shoot' })).toBeFocused();
+});
+
 test('@claim:shared-daily-course fresh demo contexts render the same three-hole sample', async ({ page, browser }) => {
   await page.clock.setFixedTime(new Date('2026-09-01T12:00:00Z'));
   await page.goto('/demo');
@@ -154,6 +160,57 @@ test('@claim:run-persistence current hole and shot count survive reload', async 
   await expect(page.getByText('Hole 2 of 3', { exact: true })).toBeVisible();
   await expect(page.getByText('Shots: 1 / 5', { exact: true })).toBeVisible();
   await expect(page.getByText('Run restored at hole 2.')).toBeVisible();
+});
+
+test('@claim:clear-local-score-history confirmation removes only saved score history', async ({ page }) => {
+  const saved = {
+    best: 3,
+    completed: ['20260901'],
+    sound: true,
+    run: {
+      seed: 20260901,
+      holeIndex: 1,
+      shots: 2,
+      total: 7,
+      holesWon: 1,
+      angle: -.4,
+      power: 95,
+      simulation: { ball: { x: 105, y: 126 }, velocity: { x: 0, y: 0 }, elapsed: 0, inCup: false },
+      outcome: null,
+    },
+  };
+  await page.goto('/privacy');
+  await expect(page.getByText('Use “Clear local score history” to delete this storage key’s best score and completed dates. It keeps the current run and sound setting.')).toBeVisible();
+  await page.goto('/demo');
+  await page.evaluate(({ key, value }) => localStorage.setItem(key, JSON.stringify(value)), { key: DEMO_KEY, value: saved });
+  await page.reload();
+
+  const control = page.getByRole('button', { name: 'Clear local score history' });
+  await control.focus();
+  await page.keyboard.press('Enter');
+  const dialog = page.getByRole('dialog', { name: 'Clear saved score history?' });
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toContainText('This deletes the best score and completed dates for this demo. It keeps your current run and sound setting.');
+  await expect(dialog.getByRole('button', { name: 'Keep saved data' })).toBeFocused();
+  expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), DEMO_KEY)).toEqual(saved);
+  await page.keyboard.press('Escape');
+  await expect(dialog).toBeHidden();
+  await expect(control).toBeFocused();
+  expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), DEMO_KEY)).toEqual(saved);
+
+  await page.keyboard.press('Enter');
+  const confirm = dialog.getByRole('button', { name: 'Clear best score and completed dates' });
+  await confirm.focus();
+  await page.keyboard.press('Space');
+  await expect(dialog).toBeHidden();
+  await expect(control).toBeFocused();
+  await expect(page.getByText('Saved score history cleared. Your current run and sound setting remain.')).toBeVisible();
+  expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), DEMO_KEY)).toEqual({
+    best: null,
+    completed: [],
+    sound: true,
+    run: saved.run,
+  });
 });
 
 test('@claim:sound-setting sound plays after a gesture and the setting survives reload', async ({ page }) => {
@@ -368,8 +425,6 @@ test('390x844 first screen contains the explanation, action, and playable board'
   expect(geometry.action.bottom).toBeLessThan(geometry.viewport);
   expect(geometry.canvas.top).toBeLessThan(geometry.viewport);
   expect(geometry.canvas.bottom).toBeLessThanOrEqual(geometry.viewport + 2);
-  await page.getByRole('button', { name: 'Play the sample course' }).click();
-  await expect(page.getByRole('heading', { name: 'Aim, check the dotted path, then shoot' })).toBeFocused();
 });
 
 test('390x844 exposes 44px targets through every public page, including footer and legal links', async ({ page }) => {
