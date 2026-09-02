@@ -1,0 +1,171 @@
+{
+  "origin": "https://pinpoint-daily.sociobot.in",
+  "checkedAt": "2026-09-02T06:53:47.674Z",
+  "firstScreen": {
+    "title": "Demo — Pinpoint Daily",
+    "h1": "Play today’s three-hole course",
+    "facts": [
+      "Free to play",
+      "Internet needed to open",
+      "Scores stay on this device"
+    ],
+    "banner": "Demo — sample data, saved only hereReset demoStart for real",
+    "demoStorage": null,
+    "realStorage": "{\"best\":1,\"completed\":[\"19990101\"],\"sound\":true,\"run\":{\"seed\":20260901,\"holeIndex\":2,\"shots\":4,\"total\":14,\"holesWon\":2,\"angle\":1.2,\"power\":180,\"simulation\":{\"ball\":{\"x\":130,\"y\":350},\"velocity\":{\"x\":0,\"y\":0},\"elapsed\":9,\"inCup\":false},\"outcome\":null}}",
+    "canvas": {
+      "x": 23,
+      "y": 633.46875,
+      "width": 344,
+      "height": 206.390625,
+      "top": 633.46875,
+      "right": 367,
+      "bottom": 839.859375,
+      "left": 23
+    },
+    "viewportHeight": 844
+  },
+  "win": {
+    "state": {
+      "best": 3,
+      "completed": [
+        "20260901"
+      ],
+      "sound": false,
+      "run": {
+        "seed": 20260901,
+        "holeIndex": 2,
+        "shots": 1,
+        "total": 3,
+        "holesWon": 3,
+        "angle": -0.4,
+        "power": 95,
+        "simulation": {
+          "ball": {
+            "x": 665,
+            "y": 130
+          },
+          "velocity": {
+            "x": 0,
+            "y": 0
+          },
+          "elapsed": 4.849999999999988,
+          "inCup": false
+        },
+        "outcome": "won"
+      }
+    },
+    "restart": {
+      "save": {
+        "best": 3,
+        "completed": [
+          "20260901"
+        ],
+        "sound": false,
+        "run": {
+          "seed": 20260901,
+          "holeIndex": 0,
+          "shots": 0,
+          "total": 0,
+          "holesWon": 0,
+          "angle": -0.4,
+          "power": 95,
+          "simulation": {
+            "ball": {
+              "x": 112,
+              "y": 355
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0
+            },
+            "elapsed": 0,
+            "inCup": false
+          },
+          "outcome": null
+        }
+      },
+      "resultHidden": true,
+      "focus": "Interactive tabletop golf course"
+    },
+    "holeScreens": [
+      ".factory/evidence/polish-3-live/qa/shared-hole-1.png",
+      ".factory/evidence/polish-3-live/qa/shared-hole-2.png",
+      ".factory/evidence/polish-3-live/qa/shared-hole-3.png"
+    ]
+  },
+  "loss": {
+    "state": {
+      "best": null,
+      "completed": [],
+      "sound": false,
+      "run": {
+        "seed": 20260901,
+        "holeIndex": 2,
+        "shots": 5,
+        "total": 15,
+        "holesWon": 0,
+        "angle": -0.4,
+        "power": 95,
+        "simulation": {
+          "ball": {
+            "x": 130,
+            "y": 350
+          },
+          "velocity": {
+            "x": 0,
+            "y": 0
+          },
+          "elapsed": 0.16666666666666666,
+          "inCup": false
+        },
+        "outcome": "lost"
+      }
+    },
+    "restart": {
+      "save": {
+        "best": null,
+        "completed": [],
+        "sound": false,
+        "run": {
+          "seed": 20260901,
+          "holeIndex": 0,
+          "shots": 0,
+          "total": 0,
+          "holesWon": 0,
+          "angle": -0.4,
+          "power": 95,
+          "simulation": {
+            "ball": {
+              "x": 112,
+              "y": 355
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0
+            },
+            "elapsed": 0,
+            "inCup": false
+          },
+          "outcome": null
+        }
+      },
+      "resultHidden": true,
+      "focus": "Interactive tabletop golf course"
+    }
+  },
+  "routes": {
+    "privacyStatus": 200,
+    "missingStatus": 404,
+    "missingTitle": "Page not found — Pinpoint Daily",
+    "iconHeaders": {
+      "/favicon.svg": {
+        "status": 200,
+        "cacheControl": "public, must-revalidate, max-age=30"
+      },
+      "/apple-touch-icon.svg": {
+        "status": 200,
+        "cacheControl": "public, must-revalidate, max-age=30"
+      }
+    }
+  }
+}
