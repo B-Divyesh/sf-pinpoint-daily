@@ -1,10 +1,10 @@
 [
   {
     "id": "demo-isolation",
-    "claim": "Try it with sample data opens a separate demo that never changes ordinary game data",
+    "claim": "Try it with sample data opens a separate demo that never reads or changes ordinary game data",
     "where": "landing action, demo banner, README",
     "test": "npm run test:browser -- --grep @claim:demo-isolation",
-    "sandbox": "Fresh browser context; seed ordinary storage, select the landing action, change demo settings, reset, and compare both namespaces."
+    "sandbox": "Fresh browser contexts; seed contradictory ordinary run, best, completed-date, and sound values; enter through /demo and /?demo=1; assert independent demo defaults and unchanged ordinary storage."
   },
   {
     "id": "demo-focus",
@@ -18,14 +18,14 @@
     "claim": "Everyone gets the same three-hole course for a UTC day",
     "where": "landing page, footer, README",
     "test": "npm run test:browser -- --grep @claim:shared-daily-course",
-    "sandbox": "Two fresh browser contexts enter through /demo with a fixed clock and compare the real daily seed and rendered board."
+    "sandbox": "Two fresh browser contexts use a fixed UTC clock, enter through /demo, switch to the daily course, and compare all three rendered boards after identical advancement and reload."
   },
   {
     "id": "visible-prediction",
     "claim": "A dotted path previews a shot before release",
     "where": "game board, How it works, README",
     "test": "npm run test:browser -- --grep @claim:visible-prediction",
-    "sandbox": "Fresh /demo; measure the rendered cyan path before a shot and verify that pausing removes it."
+    "sandbox": "Fresh /demo; measure the rendered cyan path, then compare prediction points with first-shot and later bumper-collision simulation from the exact live snapshot."
   },
   {
     "id": "visible-course-elements",
@@ -60,7 +60,7 @@
     "claim": "The game has no accounts, ads, analytics, cookies, or game-data requests",
     "where": "privacy section, privacy page, README",
     "test": "npm run test:browser -- --grep @claim:local-privacy",
-    "sandbox": "Fresh /demo; record methods, URLs, and cookies through play and navigation, allowing only same-origin document and static-asset GET requests."
+    "sandbox": "Fresh /demo; complete win and loss runs; assert no account or ad UI, beacons, WebSockets, EventSource, cookies, query strings, request bodies, or requests outside the exact document/static-asset GET allowlist."
   },
   {
     "id": "input-methods",
@@ -99,10 +99,17 @@
   },
   {
     "id": "clear-local-score-history",
-    "claim": "Clear local score history asks for confirmation and removes only the best score and completed dates",
+    "claim": "Clear local score history asks for confirmation, cannot be undone, and removes only the best score and completed dates",
     "where": "game control and privacy page",
     "test": "npm run test:browser -- --grep @claim:clear-local-score-history",
-    "sandbox": "Fresh /demo; seed best score, completed dates, sound, and a current run; cancel once, then confirm; assert only best and completed dates are removed."
+    "sandbox": "Fresh /demo; seed every saved field, cancel once, then confirm; assert the warning, permanent removal after reload, no Undo control, and preservation of only the current run and sound."
+  },
+  {
+    "id": "storage-removal",
+    "claim": "Clearing this site's browser data deletes all saved real and demo game data",
+    "where": "privacy page",
+    "test": "npm run test:browser -- --grep @claim:storage-removal",
+    "sandbox": "Fresh browser context; seed full ordinary and demo saves, clear origin localStorage, reload both modes, and assert every saved field remains absent with default game state."
   },
   {
     "id": "result-sharing",
@@ -123,13 +130,20 @@
     "claim": "The complete game is free to play without an account or payment step",
     "where": "landing facts, terms, README",
     "test": "npm run test:browser -- --grep @claim:free-play",
-    "sandbox": "Fresh /demo; assert the playable Shoot action and absence of sign-in and payment controls."
+    "sandbox": "Fresh /demo; complete all three holes, checking every stage and the result screen for playable controls and no sign-in or payment gate."
+  },
+  {
+    "id": "online-first-load",
+    "claim": "Internet access is needed to open the game on a fresh first visit",
+    "where": "landing facts",
+    "test": "npm run test:browser -- --grep @claim:online-first-load",
+    "sandbox": "Fresh browser context with no cache; set the context offline before opening /demo and assert navigation fails, then reconnect and assert the playable game opens."
   },
   {
     "id": "static-deploy",
     "claim": "The production build creates static files with route rewrites and security headers",
     "where": "README deployment instructions",
     "test": "npm run test:browser -- --grep @claim:static-deploy",
-    "sandbox": "Build and serve dist through the Static Web Apps emulator; open /demo, /privacy, /terms, and an unknown route; assert statuses, metadata, CSP, referrer, MIME, focus, and the 404 shell."
+    "sandbox": "Build and serve dist through the Static Web Apps emulator; check every route's status, metadata, legal links, headers, focus, 404 shell, and revalidating fixed-name icons."
   }
 ]

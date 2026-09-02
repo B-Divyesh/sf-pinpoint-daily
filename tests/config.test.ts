@@ -12,8 +12,10 @@ describe('static deployment policy', () => {
 
   it('sets immutable caching only for hashed build assets and keeps the 404 rewrite', () => {
     const config = JSON.parse(readFileSync('public/staticwebapp.config.json', 'utf8'));
-    expect(config.routes.find((route: { route: string }) => route.route === '/assets/*').headers['Cache-Control']).toContain('immutable');
-    expect(config.routes.find((route: { route: string }) => route.route === '/*.webp')).toBeUndefined();
+    const immutableRoutes = config.routes.filter((route: { headers?: Record<string, string> }) => route.headers?.['Cache-Control']?.includes('immutable'));
+    expect(immutableRoutes.map((route: { route: string }) => route.route)).toEqual(['/assets/*']);
+    expect(immutableRoutes.every((route: { route: string }) => route.route.startsWith('/assets/'))).toBe(true);
+    expect(config.routes.find((route: { route: string }) => route.route === '/*.svg')).toBeUndefined();
     expect(config.responseOverrides['404'].rewrite).toBe('/404.html');
   });
 });
@@ -30,11 +32,20 @@ describe('claims registry', () => {
 
   it('keeps the required repair claims and exact tagged browser commands', () => {
     const claims = JSON.parse(readFileSync('.factory/claims.json', 'utf8')) as { id: string; test: string }[];
-    for (const id of ['restart-reset', 'input-methods', 'demo-focus', 'clear-local-score-history']) {
+    for (const id of ['restart-reset', 'input-methods', 'demo-focus', 'clear-local-score-history', 'storage-removal', 'online-first-load']) {
       const claim = claims.find(entry => entry.id === id);
       expect(claim, `missing ${id} claim`).toBeDefined();
       expect(claim!.test).toBe(`npm run test:browser -- --grep @claim:${id}`);
     }
   });
 
+});
+
+describe('catalog copy', () => {
+  it('is one verb-first line no longer than 120 characters', () => {
+    const description = readFileSync('.factory/catalog-description.txt', 'utf8').trim();
+    expect(description).not.toContain('\n');
+    expect(description.length).toBeLessThanOrEqual(120);
+    expect(description).toMatch(/^(Play|Build|Create|Track|Turn|Find|Plan|Make|Compare|Explore)\b/);
+  });
 });

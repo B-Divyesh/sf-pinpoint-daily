@@ -80,7 +80,7 @@ function shell(content: string) {
       <nav aria-label="Main navigation">${link('/demo', 'Demo')}${link('/#how', 'How it works')}${link('/privacy', 'Privacy')}</nav>
     </header>
     <main id="main" tabindex="-1">${content}</main>
-    <footer><span>Play one shared tabletop course each day.</span>${link('/privacy', 'Privacy')}${link('/terms', 'Terms')}<span>Built by Param Factory · build 1.2.3</span></footer>
+    <footer><span>Play one shared tabletop course each day.</span>${link('/privacy', 'Privacy')}${link('/terms', 'Terms')}<span>Built by Param Factory · build 1.2.4</span></footer>
     <div class="sr-only" aria-live="polite" id="announcer"></div>`;
   wireLinks();
 }
@@ -132,7 +132,7 @@ function home() {
   shell(`${banner}<section class="intro"><div><p class="eyebrow">${dateText}</p><h1>Play today’s three-hole course</h1>
     <p class="lede">For players who want a short physics puzzle with one shared course each day.</p>
     <div class="actions">${primaryAction}</div>
-    <ul class="facts"><li>Free to play</li><li>Five shots per hole</li><li>Scores stay on this device</li></ul></div>
+    <ul class="facts"><li>Free to play</li><li>Internet needed to open</li><li>Scores stay on this device</li></ul></div>
     <img src="/hero-blueprint.webp" width="1200" height="800" fetchpriority="high" decoding="async" alt="A tabletop golf course drawn on a navy blueprint sheet." /></section>
     <section class="play-section" aria-labelledby="course-heading"><div class="section-title"><div><p class="eyebrow">LIVE COURSE</p><h2 id="course-heading">Aim, check the dotted path, then shoot</h2></div><p>Drag away from the ball to set aim and power.</p></div><div id="game-root"></div></section>
     <section class="how" id="how"><p class="eyebrow">HOW IT WORKS</p><h2>Play the daily course in three steps</h2><ol><li><b>Read the board.</b> Wind, walls, and the moving bumper are visible.</li><li><b>Drag a shot.</b> The dotted path previews bounces before release.</li><li><b>Finish three holes.</b> Sink every cup to win. Five missed shots lose a hole.</li></ol></section>

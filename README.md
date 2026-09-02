@@ -4,7 +4,7 @@ Play one shared three-hole tabletop golf course each day. It is for players who 
 
 The UTC date chooses the daily course. Physics updates 60 times each second. Each hole has five shots, visible wind, and one moving bumper. Sink every cup to win; a missed hole produces a separate loss screen. Copy the date, cups, and shots from either result screen. The game targets 60 rendered frames per second on a mid-range phone.
 
-The full game is free. Your current run, completed dates, best score, and sound preference stay in browser storage. There are no accounts, ads, analytics, cookies, or third-party game requests.
+The full game is free. Internet access is needed to open a fresh visit. Your current run, completed dates, best score, and sound preference stay in browser storage. There are no accounts, ads, analytics, cookies, or third-party game requests.
 
 ## Run it
 

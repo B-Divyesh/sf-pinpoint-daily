@@ -45,26 +45,66 @@ async function takeWinningShot(page: Page, index: number) {
   await page.mouse.up();
 }
 
-test('@claim:demo-isolation the landing action and query alias use isolated demo storage', async ({ page, browser }) => {
+test('@claim:demo-isolation both demo entries ignore and preserve ordinary game data', async ({ page, browser }) => {
+  const ordinarySaved = {
+    best: 1,
+    completed: ['19990101'],
+    sound: true,
+    run: {
+      seed: 20260901,
+      holeIndex: 2,
+      shots: 4,
+      total: 14,
+      holesWon: 2,
+      angle: 1.2,
+      power: 180,
+      simulation: { ball: { x: 130, y: 350 }, velocity: { x: 0, y: 0 }, elapsed: 9, inCup: false },
+      outcome: null,
+    },
+  };
+  const originalReal = JSON.stringify(ordinarySaved);
+  const assertDemoDefaults = async (demoPage: Page) => {
+    await expect(demoPage.getByText('Hole 1 of 3', { exact: true })).toBeVisible();
+    await expect(demoPage.getByText('Shots: 0 / 5', { exact: true })).toBeVisible();
+    await expect(demoPage.getByText('Cups: 0 / 3', { exact: true })).toBeVisible();
+    await expect(demoPage.getByRole('button', { name: 'Turn sound on' })).toHaveAttribute('aria-pressed', 'false');
+    await expect(demoPage.getByText(/Run restored|Finished run restored/)).toHaveCount(0);
+    expect(await demoPage.evaluate(key => localStorage.getItem(key), DEMO_KEY)).toBeNull();
+  };
+
+  await page.clock.setFixedTime(new Date('2026-09-01T12:00:00Z'));
   await page.goto('/');
-  const originalReal = JSON.stringify({ best: 9, completed: ['2026-08-31'], sound: false });
   await page.evaluate(({ key, value }) => localStorage.setItem(key, value), { key: REAL_KEY, value: originalReal });
   await page.getByRole('link', { name: 'Try it with sample data' }).click();
   await expect(page).toHaveURL('/demo');
   await expect(page).toHaveTitle('Demo — Pinpoint Daily');
   await expect(page.getByText('Demo — sample data, saved only here')).toBeVisible();
+  await assertDemoDefaults(page);
   await page.getByRole('button', { name: 'Turn sound on' }).click();
+  expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), DEMO_KEY)).toMatchObject({
+    best: null,
+    completed: [],
+    sound: true,
+    run: { seed: 20260901, holeIndex: 0, shots: 0, total: 0, holesWon: 0 },
+  });
   expect(await page.evaluate(key => localStorage.getItem(key), REAL_KEY)).toBe(originalReal);
 
   const aliasContext = await browser.newContext({ baseURL: ORIGIN });
   const aliasPage = await aliasContext.newPage();
+  await aliasPage.clock.setFixedTime(new Date('2026-09-01T12:00:00Z'));
   await aliasPage.goto('/');
   await aliasPage.evaluate(({ key, value }) => localStorage.setItem(key, value), { key: REAL_KEY, value: originalReal });
   await aliasPage.goto('/?demo=1');
   await expect(aliasPage).toHaveTitle('Demo — Pinpoint Daily');
   await expect(aliasPage.getByText('Demo — sample data, saved only here')).toBeVisible();
+  await assertDemoDefaults(aliasPage);
   await aliasPage.getByRole('button', { name: 'Turn sound on' }).click();
-  expect(await aliasPage.evaluate(key => localStorage.getItem(key), DEMO_KEY)).not.toBeNull();
+  expect(await aliasPage.evaluate(key => JSON.parse(localStorage.getItem(key)!), DEMO_KEY)).toMatchObject({
+    best: null,
+    completed: [],
+    sound: true,
+    run: { seed: 20260901, holeIndex: 0, shots: 0, total: 0, holesWon: 0 },
+  });
   expect(await aliasPage.evaluate(key => localStorage.getItem(key), REAL_KEY)).toBe(originalReal);
   await aliasContext.close();
   expect(await page.evaluate(key => localStorage.getItem(key), DEMO_KEY)).not.toBeNull();
@@ -82,6 +122,7 @@ test('@claim:demo-focus Play the sample course moves focus to the demo course', 
 });
 
 test('@claim:shared-daily-course fresh demo contexts render the same three-hole sample', async ({ page, browser }) => {
+  test.setTimeout(60_000);
   await page.clock.setFixedTime(new Date('2026-09-01T12:00:00Z'));
   await page.goto('/demo');
   const secondContext = await browser.newContext({ baseURL: ORIGIN });
@@ -90,9 +131,21 @@ test('@claim:shared-daily-course fresh demo contexts render the same three-hole 
   await secondPage.goto('/demo');
   await page.getByRole('button', { name: 'Start for real' }).click();
   await secondPage.getByRole('button', { name: 'Start for real' }).click();
-  expect(await page.locator('#game-root').getAttribute('data-course-seed')).toBe('20260901');
-  expect(await secondPage.locator('#game-root').getAttribute('data-course-seed')).toBe('20260901');
-  expect(await page.locator('canvas').screenshot()).toEqual(await secondPage.locator('canvas').screenshot());
+  for (let hole = 0; hole < winningShots.length; hole++) {
+    await expect(page.getByText(`Hole ${hole + 1} of 3`, { exact: true })).toBeVisible({ timeout: 15_000 });
+    await expect(secondPage.getByText(`Hole ${hole + 1} of 3`, { exact: true })).toBeVisible({ timeout: 15_000 });
+    expect(await page.locator('#game-root').getAttribute('data-course-seed')).toBe('20260901');
+    expect(await secondPage.locator('#game-root').getAttribute('data-course-seed')).toBe('20260901');
+    const firstBoard = await page.locator('canvas').screenshot();
+    expect(await secondPage.locator('canvas').screenshot()).toEqual(firstBoard);
+    await secondPage.reload();
+    await expect(secondPage.getByText(`Hole ${hole + 1} of 3`, { exact: true })).toBeVisible({ timeout: 15_000 });
+    expect(await secondPage.locator('canvas').screenshot()).toEqual(firstBoard);
+    if (hole < winningShots.length - 1) {
+      await takeWinningShot(page, hole);
+      await takeWinningShot(secondPage, hole);
+    }
+  }
   await secondContext.close();
 });
 
@@ -224,6 +277,7 @@ test('@claim:clear-local-score-history confirmation removes only saved score his
   const dialog = page.getByRole('dialog', { name: 'Clear saved score history?' });
   await expect(dialog).toBeVisible();
   await expect(dialog).toContainText('This deletes the best score and completed dates for this demo. It keeps your current run and sound setting.');
+  await expect(dialog).toContainText('This cannot be undone.');
   await expect(dialog.getByRole('button', { name: 'Keep saved data' })).toBeFocused();
   expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), DEMO_KEY)).toEqual(saved);
   await page.keyboard.press('Escape');
@@ -244,6 +298,52 @@ test('@claim:clear-local-score-history confirmation removes only saved score his
     sound: true,
     run: saved.run,
   });
+  await expect(page.getByRole('button', { name: /undo/i })).toHaveCount(0);
+  await page.reload();
+  expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), DEMO_KEY)).toEqual({
+    best: null,
+    completed: [],
+    sound: true,
+    run: saved.run,
+  });
+});
+
+test('@claim:storage-removal clearing site browser data removes every saved game field', async ({ page }) => {
+  const saved = {
+    best: 3,
+    completed: ['20260901'],
+    sound: true,
+    run: {
+      seed: 20260901,
+      holeIndex: 2,
+      shots: 4,
+      total: 14,
+      holesWon: 2,
+      angle: .4,
+      power: 120,
+      simulation: { ball: { x: 130, y: 350 }, velocity: { x: 0, y: 0 }, elapsed: 4, inCup: false },
+      outcome: null,
+    },
+  };
+  await page.goto('/privacy');
+  await expect(page.getByText('Clear this site’s browser data to delete all saved game data.')).toBeVisible();
+  await page.evaluate(({ realKey, demoKey, value }) => {
+    localStorage.setItem(realKey, JSON.stringify(value));
+    localStorage.setItem(demoKey, JSON.stringify(value));
+    localStorage.clear();
+  }, { realKey: REAL_KEY, demoKey: DEMO_KEY, value: saved });
+  expect(await page.evaluate(({ realKey, demoKey }) => [localStorage.getItem(realKey), localStorage.getItem(demoKey)], { realKey: REAL_KEY, demoKey: DEMO_KEY })).toEqual([null, null]);
+
+  for (const route of ['/', '/demo']) {
+    await page.goto(route);
+    await expect(page.getByText('Hole 1 of 3', { exact: true })).toBeVisible();
+    await expect(page.getByText('Shots: 0 / 5', { exact: true })).toBeVisible();
+    await expect(page.getByText('Cups: 0 / 3', { exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Turn sound on' })).toHaveAttribute('aria-pressed', 'false');
+    await expect(page.getByText(/Run restored|Finished run restored/)).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /undo/i })).toHaveCount(0);
+  }
+  expect(await page.evaluate(({ realKey, demoKey }) => [localStorage.getItem(realKey), localStorage.getItem(demoKey)], { realKey: REAL_KEY, demoKey: DEMO_KEY })).toEqual([null, null]);
 });
 
 test('@claim:sound-setting sound plays after a gesture and the setting survives reload', async ({ page }) => {
@@ -269,15 +369,68 @@ test('@claim:sound-setting sound plays after a gesture and the setting survives 
   await expect.poll(() => page.evaluate(() => (window as any).__toneStarts)).toBeGreaterThan(0);
 });
 
-test('@claim:local-privacy a complete local interaction sends no third-party requests', async ({ page }) => {
-  const requests: { url: string; method: string }[] = [];
-  page.on('request', request => requests.push({ url: request.url(), method: request.method() }));
+test('@claim:local-privacy complete win and loss flows stay local without accounts, ads, or analytics', async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.addInitScript(() => {
+    (window as any).__privacySignals = { beacons: [], webSockets: [], eventSources: [] };
+    Object.defineProperty(navigator, 'sendBeacon', {
+      configurable: true,
+      value: (url: string | URL) => { (window as any).__privacySignals.beacons.push(String(url)); return true; },
+    });
+    window.WebSocket = new Proxy(window.WebSocket, {
+      construct(target, args) {
+        (window as any).__privacySignals.webSockets.push(String(args[0]));
+        return Reflect.construct(target, args);
+      },
+    });
+    window.EventSource = new Proxy(window.EventSource, {
+      construct(target, args) {
+        (window as any).__privacySignals.eventSources.push(String(args[0]));
+        return Reflect.construct(target, args);
+      },
+    });
+  });
+  const requests: { url: string; method: string; body: string | null; resourceType: string }[] = [];
+  page.on('request', request => requests.push({
+    url: request.url(),
+    method: request.method(),
+    body: request.postData(),
+    resourceType: request.resourceType(),
+  }));
   await page.goto('/demo');
-  await page.getByRole('button', { name: 'Turn sound on' }).click();
-  await page.locator('#shoot').click();
-  await page.locator('#reset-hole').click();
+  const expectNoAccountOrAdUi = async () => {
+    await expect(page.locator('input[type="email"], input[type="password"], a[href*="login"], a[href*="account"], button[name*="login" i], button[name*="account" i]')).toHaveCount(0);
+    await expect(page.locator('iframe, [data-ad], [aria-label*="advertisement" i]')).toHaveCount(0);
+  };
+  await expectNoAccountOrAdUi();
+  for (let hole = 0; hole < winningShots.length; hole++) {
+    await takeWinningShot(page, hole);
+    if (hole < 2) await expect(page.getByText(`Hole ${hole + 2} of 3`, { exact: true })).toBeVisible({ timeout: 15_000 });
+    await expectNoAccountOrAdUi();
+  }
+  await expect(page.getByRole('heading', { name: 'Course complete — you won' })).toBeVisible({ timeout: 15_000 });
+  await expectNoAccountOrAdUi();
+
+  await page.getByRole('button', { name: 'Reset demo' }).click();
+  await loseHole(page, 2);
+  await loseHole(page, 3);
+  await loseHole(page);
+  await expect(page.getByRole('heading', { name: 'Course over — try again' })).toBeVisible();
+  await expectNoAccountOrAdUi();
   await page.getByRole('link', { name: 'Privacy' }).first().click();
-  expect(requests.every(request => new URL(request.url).origin === ORIGIN && request.method === 'GET')).toBe(true);
+  await expectNoAccountOrAdUi();
+
+  const allowedPaths = [/^\/demo$/, /^\/assets\/[a-zA-Z0-9_-]+\.(?:js|css)$/, /^\/(?:hero-blueprint\.webp|favicon\.svg|apple-touch-icon\.svg)$/];
+  for (const request of requests) {
+    const url = new URL(request.url);
+    expect(url.origin, request.url).toBe(ORIGIN);
+    expect(url.search, request.url).toBe('');
+    expect(request.method, request.url).toBe('GET');
+    expect(request.body, request.url).toBeNull();
+    expect(allowedPaths.some(pattern => pattern.test(url.pathname)), request.url).toBe(true);
+    expect(['document', 'script', 'stylesheet', 'image'].includes(request.resourceType), request.url).toBe(true);
+  }
+  expect(await page.evaluate(() => (window as any).__privacySignals)).toEqual({ beacons: [], webSockets: [], eventSources: [] });
   expect(await page.context().cookies()).toEqual([]);
 });
 
@@ -370,6 +523,13 @@ test('@claim:distinct-outcomes @claim:best-score @claim:completed-date-persisten
   await expect(lossPage.getByText('You sank 0 of 3 cups.', { exact: false })).toBeVisible();
   await lossPage.getByRole('button', { name: 'Copy today’s result' }).click();
   expect(await lossPage.evaluate(() => (window as any).__copiedResult)).toBe('Pinpoint Daily 2026-09-01 — 0/3 cups in 15 shots');
+  await lossPage.getByRole('button', { name: 'Play again' }).click();
+  await expect(lossPage.getByText('Hole 1 of 3', { exact: true })).toBeVisible();
+  await expect(lossPage.getByText('Shots: 0 / 5', { exact: true })).toBeVisible();
+  await expect(lossPage.getByText('Cups: 0 / 3', { exact: true })).toBeVisible();
+  await expect(lossPage.getByText('New run. Read the path before shooting.')).toBeVisible();
+  await expect(lossPage.locator('#results')).toBeHidden();
+  await expect(lossPage.locator('canvas')).toBeFocused();
   await lossContext.close();
 });
 
@@ -467,17 +627,46 @@ test('@claim:free-play the complete demo run has no account or payment step', as
   await expect(page.getByRole('button', { name: 'Play again' })).toBeVisible();
 });
 
-test('390x844 first screen contains the explanation, action, and playable board', async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
+test('@claim:online-first-load a fresh first load needs an internet connection', async ({ browser }) => {
+  const context = await browser.newContext({ baseURL: ORIGIN });
+  const page = await context.newPage();
+  await context.setOffline(true);
+  await expect(page.goto('/demo')).rejects.toThrow(/ERR_INTERNET_DISCONNECTED/);
+  await context.setOffline(false);
   await page.goto('/demo');
-  const geometry = await page.evaluate(() => {
+  await expect(page.getByText('Internet needed to open', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Shoot' })).toBeVisible();
+  await context.close();
+});
+
+test('390x844 cold first screen explains the game and keeps the demo board visible', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1, name: 'Play today’s three-hole course' })).toBeVisible();
+  await expect(page.getByText('For players who want a short physics puzzle with one shared course each day.')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Try it with sample data' })).toBeVisible();
+  await expect(page.getByText('Opens a demo course in separate storage.')).toBeVisible();
+  for (const fact of ['Free to play', 'Internet needed to open', 'Scores stay on this device']) {
+    await expect(page.getByText(fact, { exact: true })).toBeVisible();
+  }
+  const homeGeometry = await page.evaluate(() => {
     const rect = (selector: string) => document.querySelector(selector)!.getBoundingClientRect();
-    return { headline: rect('h1'), action: rect('.actions'), canvas: rect('canvas'), viewport: innerHeight };
+    return { headline: rect('h1'), action: rect('.actions'), facts: rect('.facts'), canvas: rect('canvas'), viewport: innerHeight };
   });
-  expect(geometry.headline.top).toBeGreaterThanOrEqual(0);
-  expect(geometry.action.bottom).toBeLessThan(geometry.viewport);
-  expect(geometry.canvas.top).toBeLessThan(geometry.viewport);
-  expect(geometry.canvas.bottom).toBeLessThanOrEqual(geometry.viewport + 2);
+  expect(homeGeometry.headline.top).toBeGreaterThanOrEqual(0);
+  expect(homeGeometry.action.bottom).toBeLessThan(homeGeometry.viewport);
+  expect(homeGeometry.facts.bottom).toBeLessThan(homeGeometry.viewport);
+  expect(homeGeometry.canvas.top).toBeLessThan(homeGeometry.viewport);
+
+  await page.getByRole('link', { name: 'Try it with sample data' }).click();
+  await expect(page).toHaveURL('/demo');
+  await expect(page.getByText('Demo — sample data, saved only here')).toBeVisible();
+  const demoGeometry = await page.evaluate(() => {
+    const rect = (selector: string) => document.querySelector(selector)!.getBoundingClientRect();
+    return { canvas: rect('canvas'), viewport: innerHeight };
+  });
+  expect(demoGeometry.canvas.top).toBeLessThan(demoGeometry.viewport);
+  expect(demoGeometry.canvas.bottom).toBeLessThanOrEqual(demoGeometry.viewport + 2);
 });
 
 test('390x844 exposes 44px targets through every public page, including footer and legal links', async ({ page }) => {
@@ -496,11 +685,36 @@ test('390x844 exposes 44px targets through every public page, including footer a
 });
 
 test('@claim:static-deploy route responses, metadata, focus, and the designed 404 work', async ({ page }) => {
-  const demoResponse = await page.goto('/demo');
-  expect(demoResponse?.status()).toBe(200);
-  expect(demoResponse?.headers()['content-security-policy']).toContain("frame-ancestors 'none'");
-  expect(demoResponse?.headers()['referrer-policy']).toBe('strict-origin-when-cross-origin');
-  expect(demoResponse?.headers()['x-content-type-options']).toBe('nosniff');
+  const routes = [
+    { path: '/', title: 'Pinpoint Daily — Play a daily three-hole course', description: 'Play one shared three-hole tabletop golf course each day.' },
+    { path: '/demo', title: 'Demo — Pinpoint Daily', description: 'Play a three-hole Pinpoint Daily sample course in separate demo storage.' },
+    { path: '/privacy', title: 'Privacy — Pinpoint Daily', description: 'Read what Pinpoint Daily stores in your browser and how to remove it.' },
+    { path: '/terms', title: 'Terms — Pinpoint Daily', description: 'Read the rules and availability terms for playing Pinpoint Daily.' },
+  ];
+  for (const route of routes) {
+    const response = await page.goto(route.path);
+    expect(response?.status(), route.path).toBe(200);
+    expect(response?.headers()['content-security-policy']).toContain("frame-ancestors 'none'");
+    expect(response?.headers()['referrer-policy']).toBe('strict-origin-when-cross-origin');
+    expect(response?.headers()['x-content-type-options']).toBe('nosniff');
+    await expect(page).toHaveTitle(route.title);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', `https://pinpoint-daily.sociobot.in${route.path}`);
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', route.description);
+    await expect(page.locator('meta[property="og:title"]')).toHaveAttribute('content', route.title);
+    await expect(page.locator('meta[property="og:description"]')).toHaveAttribute('content', route.description);
+    await expect(page.locator('meta[name="twitter:title"]')).toHaveAttribute('content', route.title);
+    await expect(page.locator('meta[name="twitter:description"]')).toHaveAttribute('content', route.description);
+    await expect(page.locator('h1')).toHaveCount(1);
+    await expect(page.locator('main')).toHaveCount(1);
+    await expect(page.locator('footer a[href="/privacy"]')).toBeVisible();
+    await expect(page.locator('footer a[href="/terms"]')).toBeVisible();
+  }
+  for (const icon of ['/favicon.svg', '/apple-touch-icon.svg']) {
+    const response = await page.request.get(icon);
+    expect(response.status()).toBe(200);
+    expect(response.headers()['cache-control'] ?? '').not.toContain('immutable');
+  }
+  await page.goto('/demo');
   await page.getByRole('link', { name: 'Privacy' }).first().click();
   await expect(page.getByRole('heading', { level: 1 })).toBeFocused();
   await expect(page.locator('#announcer')).toContainText('page loaded');
@@ -509,10 +723,6 @@ test('@claim:static-deploy route responses, metadata, focus, and the designed 40
   await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', 'Read what Pinpoint Daily stores in your browser and how to remove it.');
   await page.goBack();
   await expect(page).toHaveTitle('Demo — Pinpoint Daily');
-  const privacyResponse = await page.goto('/privacy');
-  const termsResponse = await page.goto('/terms');
-  expect(privacyResponse?.status()).toBe(200);
-  expect(termsResponse?.status()).toBe(200);
   const missingResponse = await page.goto('/does-not-exist-qa');
   expect(missingResponse?.status()).toBe(404);
   await expect(page).toHaveTitle('Page not found — Pinpoint Daily');
@@ -520,6 +730,8 @@ test('@claim:static-deploy route responses, metadata, focus, and the designed 40
   await expect(page.getByRole('banner')).toBeVisible();
   await expect(page.getByRole('contentinfo')).toBeVisible();
   await expect(page.getByRole('link', { name: 'How it works' })).toBeVisible();
+  await expect(page.locator('footer a[href="/privacy"]')).toBeVisible();
+  await expect(page.locator('footer a[href="/terms"]')).toBeVisible();
   await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', 'This address does not match a Pinpoint Daily page.');
 });
 
