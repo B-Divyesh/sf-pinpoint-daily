@@ -57,10 +57,10 @@
   },
   {
     "id": "input-methods",
-    "claim": "The game supports drag, keyboard, and labelled on-screen controls, and pause blocks shots",
+    "claim": "The game supports drag, labelled controls, Arrow-key aim and power, Enter to shoot, R to reset, and Escape to pause",
     "where": "game instructions, README",
     "test": "npm run test:browser -- --grep @claim:input-methods",
-    "sandbox": "Fresh /demo; exercise pause, confirm zero-length pointer input does not fire, complete a non-zero drag shot and assert its rolling state, then use keyboard aim/fire and labelled on-screen controls."
+    "sandbox": "Fresh /demo; exercise Escape pause, zero-length and non-zero drags, ArrowLeft/ArrowRight aim, ArrowUp/ArrowDown power, Enter fire, R reset, and labelled controls; assert visible feedback and shot state."
   },
   {
     "id": "distinct-outcomes",
@@ -75,6 +75,13 @@
     "where": "game results, privacy page, README",
     "test": "npm run test:browser -- --grep @claim:best-score",
     "sandbox": "Fresh /demo; complete the deterministic three-shot win, inspect the saved best, reload, and verify the winning result remains."
+  },
+  {
+    "id": "restart-reset",
+    "claim": "Play again starts a fresh run and keeps the saved best score, completed date, and sound setting",
+    "where": "win and loss screens",
+    "test": "npm run test:browser -- --grep @claim:restart-reset",
+    "sandbox": "Fresh /demo; enable sound, complete the deterministic three-shot win, select Play again, and assert a fresh hole-one run while saved progress and sound remain."
   },
   {
     "id": "completed-date-persistence",
@@ -103,6 +110,13 @@
     "where": "landing facts, terms, README",
     "test": "npm run test:browser -- --grep @claim:free-play",
     "sandbox": "Fresh /demo; assert the playable Shoot action and absence of sign-in and payment controls."
+  },
+  {
+    "id": "generated-artwork",
+    "claim": "Blueprint artwork is generated for Pinpoint Daily",
+    "where": "footer on every public route",
+    "test": "npm run test:browser -- --grep @claim:generated-artwork",
+    "sandbox": "Open every public route, assert the disclosure, and verify the shipped hero bytes match the generated asset documented in the design provenance."
   },
   {
     "id": "static-deploy",

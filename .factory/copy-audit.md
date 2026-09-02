@@ -44,7 +44,8 @@ The landing and demo screens were read aloud as one flow. The first screen state
 | Clipboard result | Today’s result copied. | 3 | Pass |
 | Clipboard fallback | Copy the selected result above. | 5 | Pass |
 | Footer | Play one shared tabletop course each day. | 7 | Pass |
-| Footer | Built by Param Factory · build 1.2.0 | 7 | Pass |
+| Footer | Blueprint artwork is generated for Pinpoint Daily. | 7 | Pass |
+| Footer | Built by Param Factory · build 1.2.1 | 7 | Pass |
 
 ## Legal and 404 routes
 

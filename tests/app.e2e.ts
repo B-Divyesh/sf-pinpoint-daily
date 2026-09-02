@@ -1,5 +1,7 @@
 import { expect, Page, test } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 
 const ORIGIN = process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:4173';
 const DEMO_KEY = 'demo:daily-v1';
@@ -189,7 +191,7 @@ test('@claim:local-privacy a complete local interaction sends no third-party req
   expect(await page.context().cookies()).toEqual([]);
 });
 
-test('@claim:input-methods keyboard, pointer, pause, and labelled controls work', async ({ page }) => {
+test('@claim:input-methods drag, controls, pause, and every advertised keyboard operation work', async ({ page }) => {
   await page.goto('/demo');
   const canvas = page.locator('canvas');
   await canvas.focus();
@@ -207,10 +209,22 @@ test('@claim:input-methods keyboard, pointer, pause, and labelled controls work'
   await expect(page.getByText('Ball rolling. Watch the bounce.')).toBeVisible();
   await page.getByRole('button', { name: 'Reset hole' }).click();
   await canvas.focus();
+  await page.keyboard.press('ArrowUp');
+  await expect(page.getByText('Power set to 105.')).toBeVisible();
+  expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)!).run.power, DEMO_KEY)).toBe(105);
+  await page.keyboard.press('ArrowDown');
+  await expect(page.getByText('Power set to 95.')).toBeVisible();
+  await page.keyboard.press('ArrowDown');
+  await expect(page.getByText('Power set to 85.')).toBeVisible();
   await page.keyboard.press('ArrowRight');
   await page.keyboard.press('Enter');
   await expect(page.getByText('Shots: 2 / 5', { exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Reset hole' }).click();
+  await page.keyboard.press('r');
+  await expect(page.getByText('Hole reset. Your used shots remain counted.')).toBeVisible();
+  const resetRun = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!).run, DEMO_KEY);
+  expect(resetRun.shots).toBe(2);
+  expect(resetRun.simulation.ball).toEqual(winningShots[0].start);
+  expect(resetRun.simulation.velocity).toEqual({ x: 0, y: 0 });
   await page.getByRole('button', { name: 'Decrease power' }).click();
   await page.getByRole('button', { name: 'Shoot' }).click();
   await expect(page.getByText('Shots: 3 / 5', { exact: true })).toBeVisible();
@@ -255,6 +269,36 @@ test('@claim:distinct-outcomes @claim:best-score @claim:completed-date-persisten
   await lossPage.getByRole('button', { name: 'Copy today’s result' }).click();
   expect(await lossPage.evaluate(() => (window as any).__copiedResult)).toBe('Pinpoint Daily 2026-09-01 — 0/3 cups in 15 shots');
   await lossContext.close();
+});
+
+test('@claim:restart-reset Play again starts fresh while saved progress and settings remain', async ({ page }) => {
+  test.setTimeout(45_000);
+  await page.goto('/demo');
+  await page.getByRole('button', { name: 'Turn sound on' }).click();
+  for (let hole = 0; hole < winningShots.length; hole++) {
+    await takeWinningShot(page, hole);
+    if (hole < 2) await expect(page.getByText(`Hole ${hole + 2} of 3`, { exact: true })).toBeVisible({ timeout: 15_000 });
+  }
+  await expect(page.getByRole('heading', { name: 'Course complete — you won' })).toBeVisible({ timeout: 15_000 });
+  await page.getByRole('button', { name: 'Play again' }).click();
+
+  await expect(page.getByText('Hole 1 of 3', { exact: true })).toBeVisible();
+  await expect(page.getByText('Shots: 0 / 5', { exact: true })).toBeVisible();
+  await expect(page.getByText('Cups: 0 / 3', { exact: true })).toBeVisible();
+  await expect(page.getByText('New run. Read the path before shooting.')).toBeVisible();
+  await expect(page.locator('#results')).toBeHidden();
+  await expect(page.locator('canvas')).toBeFocused();
+  const saved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), DEMO_KEY);
+  expect(saved.best).toBe(3);
+  expect(saved.completed).toContain('20260901');
+  expect(saved.sound).toBe(true);
+  expect(saved.run).toMatchObject({ holeIndex: 0, shots: 0, total: 0, holesWon: 0, angle: -.4, power: 95, outcome: null });
+
+  await page.reload();
+  await expect(page.getByText('Hole 1 of 3', { exact: true })).toBeVisible();
+  await expect(page.getByText('Shots: 0 / 5', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Turn sound off' })).toHaveAttribute('aria-pressed', 'true');
+  expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)!).best, DEMO_KEY)).toBe(3);
 });
 
 test('result sharing shows selectable text when clipboard access fails', async ({ page }) => {
@@ -343,11 +387,19 @@ test('390x844 exposes 44px targets through every public page, including footer a
   }
 });
 
-test('the public footer discloses generated blueprint artwork', async ({ page }) => {
+test('@claim:generated-artwork every public route discloses the documented generated blueprint artwork', async ({ page }) => {
   for (const route of ['/', '/demo', '/privacy', '/terms', '/not-found']) {
     await page.goto(route);
     await expect(page.getByText('Blueprint artwork is generated for Pinpoint Daily.')).toBeVisible();
   }
+  const response = await page.request.get('/hero-blueprint.webp');
+  expect(response.ok()).toBe(true);
+  expect(response.headers()['content-type']).toContain('image/webp');
+  const hash = (value: Buffer) => createHash('sha256').update(value).digest('hex');
+  expect(hash(await response.body())).toBe(hash(readFileSync('public/hero-blueprint.webp')));
+  const provenance = readFileSync('.factory/design.md', 'utf8');
+  expect(provenance).toContain('`public/hero-blueprint.webp` is an original generated editorial illustration');
+  expect(provenance).toContain('generated via `/opt/fleet/lib/gen-image.sh`');
 });
 
 test('@claim:static-deploy route responses, metadata, focus, and the designed 404 work', async ({ page }) => {

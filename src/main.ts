@@ -80,7 +80,7 @@ function shell(content: string) {
       <nav aria-label="Main navigation">${link('/demo', 'Demo')}${link('/#how', 'How it works')}${link('/privacy', 'Privacy')}</nav>
     </header>
     <main id="main" tabindex="-1">${content}</main>
-    <footer><span>Play one shared tabletop course each day.</span>${link('/privacy', 'Privacy')}${link('/terms', 'Terms')}<span>Blueprint artwork is generated for Pinpoint Daily.</span><span>Built by Param Factory · build 1.2.0</span></footer>
+    <footer><span>Play one shared tabletop course each day.</span>${link('/privacy', 'Privacy')}${link('/terms', 'Terms')}<span>Blueprint artwork is generated for Pinpoint Daily.</span><span>Built by Param Factory · build 1.2.1</span></footer>
     <div class="sr-only" aria-live="polite" id="announcer"></div>`;
   wireLinks();
 }
@@ -311,8 +311,8 @@ function mountGame(root: Element, seed: number, isDemo: boolean) {
     if (event.target instanceof HTMLButtonElement || event.target instanceof HTMLAnchorElement) return;
     if (event.key === 'ArrowLeft') { angle -= .12; persist(); event.preventDefault(); }
     if (event.key === 'ArrowRight') { angle += .12; persist(); event.preventDefault(); }
-    if (event.key === 'ArrowUp') { power = Math.min(180, power + 10); persist(); event.preventDefault(); }
-    if (event.key === 'ArrowDown') { power = Math.max(30, power - 10); persist(); event.preventDefault(); }
+    if (event.key === 'ArrowUp') { power = Math.min(180, power + 10); status.textContent = `Power set to ${power}.`; persist(); event.preventDefault(); }
+    if (event.key === 'ArrowDown') { power = Math.max(30, power - 10); status.textContent = `Power set to ${power}.`; persist(); event.preventDefault(); }
     if (event.key === 'Enter' || event.key === ' ') { fire({ x: Math.cos(angle) * power, y: Math.sin(angle) * power }); event.preventDefault(); }
     if (event.key.toLowerCase() === 'r') resetHole();
     if (event.key === 'Escape') togglePause();
