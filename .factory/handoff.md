@@ -1,41 +1,34 @@
-# Pinpoint Daily independent verification 7 handoff
+# Pinpoint Daily adversarial review 3 handoff
 
-## Result: PASS
+## Result: FAIL
 
-Candidate `5bddd5225d57cbaf9e15b674fc4290c43ebfcfdd` passes the acceptance contract at https://pinpoint-daily.sociobot.in. No critical, high, medium, or low defects were found. Product code was not changed.
+Reviewed candidate `a308929b2526ea0b0759b81c9b00531befde1385` at `https://pinpoint-daily.sociobot.in` without changing product code. The cold first screen, demo, live game, build, routing, accessibility, and all 19 registered claim commands pass, but `.factory/review-3.md` records four blocking and two minor findings.
 
-## What was verified
+## What was done
 
-- Clean checkout and all 19 exact `.factory/claims.json` commands: pass.
-- `npm ci`, lint, typecheck, 10/10 unit/config tests, production build, and 21/21 local browser tests: pass.
-- Live browser suite: 21/21 pass.
-- Cold first read and one-click isolated demo: pass; the game canvas is on the first desktop and 390 px screens.
-- Deterministic pointer win, fifteen-miss loss, keyboard-only win, restart, reload persistence, settings, and invalid-input recovery: pass.
-- Live privacy log: same-origin GETs only; no cookies, third-party requests, console errors, or page errors.
-- Axe on all public routes and 404: zero violations. Focus, 44 px targets, reduced motion, 200% text, and mobile layout pass.
-- 4× CPU-throttled 390 px frame rate: 60.003 fps; fixed simulation marker: 60 Hz.
-- Mobile Lighthouse: Performance 95, Accessibility 100, Best Practices 100, SEO 100; LCP 1.309 s; CLS 0.
-- Every browser-served production artifact matches the candidate build byte-for-byte. Routes, 404, security headers, and caching pass.
+- Opened the live site cold at 390×844 and 1440×900 and recorded the first-screen interpretation.
+- Audited every landing/game and README sentence, heading, label, and button.
+- Entered the one-click demo with seeded ordinary data; verified separate writes, Reset, Start for real, focus, request log, and cookies.
+- Ran every exact `.factory/claims.json` command independently after `npm ci` in clean checkout `/tmp/pinpoint-review3-clean-kGQ41j/repo`.
+- Rechecked every finding in reviews 1 and 2 plus carried handoff IDs against live behavior and source.
+- Crawled links; checked titles, metadata, route status, 404, Back/focus, headers, cache policy, console errors, visual identity, and missed leverage.
 
-## Reproduce
+## Verification
 
 ```sh
 npm ci
-npm run lint
-npm run typecheck
 npm test
 npm run build
-npm run test:browser
 PLAYWRIGHT_BASE_URL=https://pinpoint-daily.sociobot.in npm run test:browser
-node .factory/evidence/verification-7/qa-live.mjs
 ```
 
-Run each command in `.factory/claims.json` separately for the mandatory claims gate. Full findings and evidence paths are in `.factory/verification-7.md` and `.factory/evidence/verification-7/`.
+- Claims: 19/19 commands exited successfully; `shared-daily-course` and `local-privacy` remain incompletely asserted.
+- Unit/config tests: 10/10 passed.
+- Live browser tests: 21/21 passed.
+- Build: passed; JavaScript 21.42 kB raw / 8.12 kB gzip.
+- Live Axe 4.13 Playwright integration: zero violations on `/`, `/demo`, `/privacy`, `/terms`, and 404.
+- `/opt/fleet/lib/verify-url.sh`: passed with no console or page errors.
 
-## Scope notes
+## Left for the owner
 
-The product is static and local-first. It has no backend endpoints, sign-in, payment, service worker, or external product service, so server rate-limit, Entra, backend concurrency, and PWA update checks do not apply.
-
-## Known gaps
-
-None.
+Fix F-3-1 through F-3-6 in `.factory/review-3.md`. Product code was intentionally not modified. The standalone Axe CLI could not pair its Selenium driver with the preinstalled Playwright Chromium; the repository’s equivalent Axe Playwright integration ran successfully instead.
