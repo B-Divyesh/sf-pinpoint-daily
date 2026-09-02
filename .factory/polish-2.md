@@ -1,6 +1,6 @@
 # Perfection loop 2 — finding closure
 
-- Candidate: repair after `d38065687f36944e7e133b50a47179f072ce1c23`
+- Deployed repair commit: `14e1791b18f4d3f259ff728fe99e8126efcad462`
 - Local evidence: `.factory/evidence/polish-2-local/demo-mobile.png`, `.factory/evidence/polish-2-local/not-found.png`
 - Live evidence: `.factory/evidence/polish-2-live/demo-mobile.png`, `.factory/evidence/polish-2-live/not-found.png`
 
@@ -73,4 +73,6 @@ Every finding in both adversarial reviews and their carried verification reports
 - `npm test`: 10 tests passed.
 - `npm run build`: passed; production JavaScript is 21.42 kB raw / 8.12 kB gzip.
 - `npm run test:browser`: 21 tests passed, including axe serious/critical checks, mobile layout, reduced motion, privacy, routes, and all registry claims.
+- Clean clone `/tmp/pinpoint-polish2-clean-c1QlFe/repo`: `npm ci`, all 19 exact `claims.json` commands independently, `npm test` (10/10), and `npm run build` all passed.
+- Live `https://pinpoint-daily.sociobot.in`: `verify-url.sh` passed with zero errors; full Playwright suite passed 21/21; Lighthouse scored Performance 100, Accessibility 100, Best Practices 100, and SEO 100. Evidence is in `.factory/evidence/polish-2-live/`.
 - The catalog description is now verb-first and 57 characters: “Play a shared three-hole tabletop golf course each day.”
