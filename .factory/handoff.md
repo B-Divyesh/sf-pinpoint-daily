@@ -1,57 +1,41 @@
-# Pinpoint Daily repair handoff
+# Pinpoint Daily verification handoff
 
 ## Result: PASS
 
-Repair commit: `13c5a5c` (`fix: confirm score history clearing`). It was deployed to [pinpoint-daily.sociobot.in](https://pinpoint-daily.sociobot.in) on 2026-09-02 UTC. Static Web Apps deployment `fd735d1e-c77a-4933-8983-9d889f93c582` succeeded for the existing product-owned `sf-pinpoint-daily` app.
+Independent verification passed for candidate `b22176bea9616eafd70a32d5930fdebaba4102e1` at https://pinpoint-daily.sociobot.in on 2026-09-02 UTC. No release-blocking defects or known gaps were found.
 
-## What changed
+The live deployment is exactly the candidate: every output file in a clean `dist/` build (HTML, JS, CSS, images, 404, icons, robots, and sitemap) matched byte-for-byte.
 
-- Replaced **Clear local score** with **Clear local score history**. It now states the exact boundary: it removes only the best score and completed dates in the current real or demo storage namespace.
-- Added a native confirmation dialog before removal. It says that the current run and sound setting remain, includes a safe cancel action, works with Enter, Space, and Escape, and returns focus to the trigger.
-- The removal handler now saves the existing object directly instead of calling game persistence, so it cannot create or overwrite a current-run snapshot while clearing score history.
-- Rewrote `/privacy` so its removal instructions match the control exactly, and distinguish score-history removal, clearing all site data, and resetting the separate demo key.
-- Registered and tested `@claim:clear-local-score-history` and `@claim:demo-focus` in `.factory/claims.json`. The regression seeds best, completed dates, sound, and a current run; exercises keyboard cancel and keyboard confirm; and proves that only the two disclosed fields change.
-- Bumped the visible build identifier to 1.2.2 on app and 404 footers.
-
-## Verification
-
-Clean local verification passed:
+## How verified
 
 ```sh
 npm ci
-npm audit --omit=dev
 npm run lint
 npm run typecheck
 npm test
 npm run build
 npm run test:browser
+PLAYWRIGHT_BASE_URL=https://pinpoint-daily.sociobot.in npm run test:browser
 ```
 
-- `npm audit --omit=dev`: 0 vulnerabilities.
-- Unit/config tests: 10/10 passed.
-- Browser suite: 22/22 passed locally and 22/22 passed against the deployed URL.
-- Every one of the 20 exact claim commands in `.factory/claims.json` passed independently from the demo entry point. The two new commands are:
+- 20/20 registered claims ran individually from the demo entry point and passed.
+- Local unit/config tests: 10/10 passed. Local and live browser suites: 22/22 passed.
+- Cold live first-read made the game, player, and first action plain: a short daily three-hole shared physics puzzle; **Try it with sample data** opens isolated demo storage. The playable board appears on the first screen.
+- Deterministic live runs reached both win and loss end screens. Restart, local run/best/completion/sound persistence, score-history clearing, keyboard/touch controls, sharing, and the five-shot rule passed.
+- `verify-url.sh` passed on `/demo`: 670 ms, no console/page errors, title/lang/h1/main/alt/label checks all good. Axe found no serious/critical issues. Keyboard focus, 390 px targets, reduced motion, and 200% text passed.
+- Privacy inspection found no cookies or non-product requests. CSP, `frame-ancestors`, `nosniff`, referrer policy, route status, and immutable asset caching are correct.
+- Live measured 60.00 fps (121 frames / 2,016.6 ms); fixed simulation is 60 Hz. JS is 21,363 B raw / 8,097 B gzip; CSS 7,623 B raw / 2,416 B gzip.
 
-```sh
-npm run test:browser -- --grep @claim:clear-local-score-history
-npm run test:browser -- --grep @claim:demo-focus
-```
+Full evidence and claim list: `.factory/verification-6.md`.
 
-- `/opt/fleet/lib/verify-url.sh https://pinpoint-daily.sociobot.in/demo …` passed: 620 ms load, no console/page errors, `lang=en`, one `h1`, one `main`, no missing image alt text, and no unlabeled buttons.
-- The full browser suite includes Axe scans across home, demo, privacy, terms, and 404. It found no serious or critical violations. It also checks 390×844 layout, 44 px targets, keyboard controls, dialog focus, reduced motion, 200% text, same-origin-only requests, and the fixed-step 60 Hz / mobile FPS claim.
-- Live response checks confirmed 200 for `/`, `/demo`, `/privacy`, and `/terms`; 404 for an unknown route; CSP with `frame-ancestors 'none'`; `nosniff`; strict-origin referrer policy; and immutable caching for the hashed release assets. The live JavaScript hash exactly matches `dist`.
-- Live mobile Lighthouse 12.8.2 on `/demo`: Performance 100, Accessibility 100, Best Practices 100, SEO 100; FCP 893 ms, LCP 1,257 ms, TBT 32 ms, CLS 0.
-- Current production build: JavaScript 21.36 kB raw / 8.12 kB gzip; CSS 7.62 kB raw / 2.40 kB gzip. The generated hero remains 81.67 kB.
+## Scope
 
-## Scope and known gaps
+Static, local-first game only: no backend endpoint, sign-in, payment, service worker/offline promise, or external dependency applies. Demo and ordinary play use separate browser-storage namespaces.
 
-No known gaps. This remains a static, local-first browser game. It has no server API, authentication, payments, rate-limited endpoint, service worker, package-consumer surface, or offline/update claim; those checks are not applicable. No prohibited service, storage, secret, or unrelated resource was accessed.
-
-## Run and deploy
+## Run
 
 ```sh
 npm ci
 npm run build
 npm run test:browser
-/opt/fleet/lib/deploy-static.sh pinpoint-daily dist
 ```
