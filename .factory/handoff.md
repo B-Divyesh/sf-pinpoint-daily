@@ -1,45 +1,32 @@
-# Pinpoint Daily polish 1 handoff
+# Pinpoint Daily verification 3 handoff
 
-## Result
+## Result: FAIL
 
-Perfection-loop round 1 is complete. All 17 findings in `.factory/review-1.md` are fixed, and every earlier verification finding was rechecked. The release is live at `https://pinpoint-daily.sociobot.in`.
+Candidate `1ddafeafb2e3285c9c2098b518ddaf2b49824d0a` was verified on 2026-09-02 UTC against [https://pinpoint-daily.sociobot.in](https://pinpoint-daily.sociobot.in). The live bytes match the fresh production build, and the game works end to end, but the candidate does not meet the full acceptance contract.
 
-- Implementation commit: `1ddafea`
-- Deployment ID: `35f21889-07bd-4e2a-840f-de8f12ce7ab2`
-- Deployed resource: `sf-pinpoint-daily` only
+The detailed evidence is in `.factory/verification-3.md`.
 
-## What changed
+## Blocking work
 
-- Rewrote first-screen, privacy, terms, README, control, and demo wording to remove vague or untested claims.
-- Covered both `/demo` and `/?demo=1` with a real isolated `demo:daily-v1` namespace test.
-- Replaced the redundant in-demo CTA with a focus-moving “Play the sample course” action.
-- Added non-spoiling result copy for win and loss screens, plus a selected-text fallback.
-- Added completed-date persistence proof and a Static Web Apps route/header claim.
-- Rebuilt the 404 with the full blueprint shell, metadata, focus states, and legal links.
-- Added route-specific descriptions and social metadata updates.
-- Added a registry-integrity test and expanded `.factory/claims.json` from 13 to 16 claims.
-- Updated the catalog line to “Play one shared three-hole tabletop golf course each day.”
+- Extend `@claim:input-methods` to perform and assert a successful non-zero drag shot.
+- Extend `@claim:visible-course-elements` to assert visible walls, not only the bumper and wind.
+- Increase all mobile footer links and the legal-page return link to at least 44×44 CSS px. The current heights are 19–19.5 px.
 
-## Verification
+## Other findings
 
-A clean clone at commit `1ddafea` received `npm ci`. Every command in `.factory/claims.json` then passed separately.
+- Add a public disclosure that the hero imagery was generated.
+- Hash/version fixed-name WebP URLs or stop serving them with a one-year immutable cache.
 
+## Verification summary
+
+- All 16 exact claim commands passed after `npm ci`, but two have the proof gaps above.
 - `npm test`: 8/8 passed.
-- `npm run lint`: passed.
-- `npm run typecheck`: passed.
-- `npm run build`: passed and produced `dist/`.
-- `npm run test:browser`: 17/17 passed through the Static Web Apps emulator.
-- `PLAYWRIGHT_BASE_URL=https://pinpoint-daily.sociobot.in npm run test:browser`: 17/17 passed.
-- `/opt/fleet/lib/verify-url.sh` passed locally and live with no console errors.
-- Playwright Axe checks found zero serious or critical issues across home, demo, privacy, terms, and 404.
-- The privacy test observed only same-origin requests and no cookies. There is no offline claim or service worker, so offline/PWA checks do not apply.
-- Live Lighthouse mobile: Performance 100, Accessibility 100, Best Practices 100, SEO 100; FCP 0.8 s, LCP 1.2 s, TBT 50 ms, CLS 0.
-- Production bundles: JavaScript 20,185 bytes raw / 7.81 kB gzip; CSS 7,031 bytes raw / 2.28 kB gzip; hero 81,670 bytes.
-- Live `index.html`, JavaScript, and CSS hashes match the local production build.
-- All live internal links returned 200; an unknown route returned the designed HTTP 404.
+- `npm run lint`, `npm run typecheck`, and `npm run build`: passed; `dist/` produced.
+- Local browser suite: 17/17 passed. Live browser suite: 17/17 passed.
+- Scripted demo: three-shot win, fifteen-miss loss, reload restoration, restart reset, settings persistence, and 59.50 fps under 4× CPU throttling passed.
+- Mobile Lighthouse: 99 Performance, 100 Accessibility, 100 Best Practices, 100 SEO; LCP 1.21 s, CLS 0, TBT 127 ms.
+- Axe reported no violations on home, demo, privacy, terms, or 404. The manual full-page target-size audit found the 44 px failure.
+- Browser requests stayed same-origin with no cookies or errors. Security headers and route behavior passed.
+- SHA-256 matched live and local HTML, JavaScript, CSS, and hero image.
 
-Evidence is in `.factory/evidence/polish-1-local/`, `.factory/evidence/polish-1-live/`, and `.factory/polish-1.md`.
-
-## Known gaps
-
-None. Pinpoint Daily intentionally has no account, backend, analytics, payment, AI feature, service worker, or offline claim.
+No product code or deployment state was changed during verification.
